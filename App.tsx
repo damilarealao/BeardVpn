@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, ActivityIndicator, Text } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import './global.css';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { useServers } from './src/hooks/useServers';
 import { useVpn } from './src/hooks/useVpn';
@@ -61,29 +63,31 @@ export default function App() {
 
   if (isLoading) {
     return (
-      <View className="flex-1 bg-vpn-950 items-center justify-center">
-        <ActivityIndicator size="large" color="#3b82f6" />
-        <Text className="text-gray-400 mt-4">Loading servers...</Text>
-      </View>
+      <SafeAreaProvider>
+        <View className="flex-1 bg-vpn-950 items-center justify-center">
+          <ActivityIndicator size="large" color="#3b82f6" />
+          <Text className="text-gray-400 mt-4">Loading servers...</Text>
+        </View>
+      </SafeAreaProvider>
     );
   }
 
   return (
-    <>
-    <AppNavigator
-      connection={connection}
-      servers={servers}
-      selectedServer={selectedServer}
-      onSelectServer={selectServer}
-      onConnect={handleConnect}
-      onDisconnect={disconnect}
-      isLoading={isLoading}
-      onRefresh={refresh}
-      premiumUnlocked={premiumUnlocked}
-      dns={dns}
-      onDNSSet={handleDNSSet}
-    />
-    <MonetagAd visible={showAd} onClose={() => setShowAd(false)} />
-    </>
+    <SafeAreaProvider>
+      <AppNavigator
+        connection={connection}
+        servers={servers}
+        selectedServer={selectedServer}
+        onSelectServer={selectServer}
+        onConnect={handleConnect}
+        onDisconnect={disconnect}
+        isLoading={isLoading}
+        onRefresh={refresh}
+        premiumUnlocked={premiumUnlocked}
+        dns={dns}
+        onDNSSet={handleDNSSet}
+      />
+      <MonetagAd visible={showAd} onClose={() => setShowAd(false)} />
+    </SafeAreaProvider>
   );
 }

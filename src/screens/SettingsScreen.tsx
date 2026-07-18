@@ -19,46 +19,53 @@ export function SettingsScreen({ dns, onDNSSet }: SettingsScreenProps) {
 
   return (
     <ScrollView
-      className="flex-1 bg-vpn-950"
-      style={{ paddingTop: insets.top }}
-      contentContainerStyle={{ padding: 16 }}
+      style={{ flex: 1, backgroundColor: '#0f172a', paddingTop: insets.top }}
+      contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 20 }}
     >
-      <Text className="text-white text-2xl font-bold mb-6">Settings</Text>
+      <Text style={{ color: '#f1f5f9', fontSize: 26, fontWeight: 'bold', marginBottom: 24 }}>Settings</Text>
 
-      <View className="mb-6">
-        <Text className="text-gray-400 text-sm font-medium uppercase tracking-wider mb-3">
+      <View style={{ marginBottom: 24 }}>
+        <Text style={{ color: '#64748b', fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>
           DNS Server
         </Text>
-        <View className="bg-vpn-900/60 border border-vpn-800/50 rounded-xl overflow-hidden">
+        <View style={{ backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155', borderRadius: 14, overflow: 'hidden' }}>
           {DNS_OPTIONS.map((option, i) => (
             <Pressable
               key={option.value}
               onPress={() => onDNSSet(option.value)}
-              className={`flex-row items-center justify-between px-4 py-3.5 ${
-                i < DNS_OPTIONS.length - 1 ? 'border-b border-vpn-800/30' : ''
-              }`}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingHorizontal: 16,
+                paddingVertical: 14,
+                borderBottomWidth: i < DNS_OPTIONS.length - 1 ? 1 : 0,
+                borderBottomColor: '#334155',
+              }}
             >
-              <Text className="text-white">{option.label}</Text>
-              <Text className="text-gray-400 text-sm font-mono">{option.value}</Text>
-              {dns === option.value && (
-                <View className="w-5 h-5 rounded-full bg-vpn-500 items-center justify-center">
-                  <Text className="text-white text-xs">{'\u2713'}</Text>
-                </View>
-              )}
+              <Text style={{ color: '#e2e8f0', fontSize: 15 }}>{option.label}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <Text style={{ color: '#64748b', fontSize: 13, fontFamily: 'monospace' }}>{option.value}</Text>
+                {dns === option.value && (
+                  <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: '#3b82f6', alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ color: '#ffffff', fontSize: 12 }}>{'\u2713'}</Text>
+                  </View>
+                )}
+              </View>
             </Pressable>
           ))}
         </View>
       </View>
 
-      <View className="mb-6">
-        <Text className="text-gray-400 text-sm font-medium uppercase tracking-wider mb-3">
+      <View style={{ marginBottom: 24 }}>
+        <Text style={{ color: '#64748b', fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>
           Features
         </Text>
-        <View className="bg-vpn-900/60 border border-vpn-800/50 rounded-xl">
-          <View className="flex-row items-center justify-between px-4 py-3.5 border-b border-vpn-800/30">
-            <View>
-              <Text className="text-white">Kill Switch</Text>
-              <Text className="text-gray-500 text-xs">Block traffic if VPN drops</Text>
+        <View style={{ backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155', borderRadius: 14, overflow: 'hidden' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#334155' }}>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: '#e2e8f0', fontSize: 15 }}>Kill Switch</Text>
+              <Text style={{ color: '#64748b', fontSize: 12, marginTop: 2 }}>Block traffic if VPN drops</Text>
             </View>
             <Switch
               value={true}
@@ -66,10 +73,10 @@ export function SettingsScreen({ dns, onDNSSet }: SettingsScreenProps) {
               thumbColor={true ? '#60a5fa' : '#9ca3af'}
             />
           </View>
-          <View className="flex-row items-center justify-between px-4 py-3.5">
-            <View>
-              <Text className="text-white">Auto-Connect</Text>
-              <Text className="text-gray-500 text-xs">Connect on app launch</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14 }}>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: '#e2e8f0', fontSize: 15 }}>Auto-Connect</Text>
+              <Text style={{ color: '#64748b', fontSize: 12, marginTop: 2 }}>Connect on app launch</Text>
             </View>
             <Switch
               value={false}
@@ -80,14 +87,14 @@ export function SettingsScreen({ dns, onDNSSet }: SettingsScreenProps) {
         </View>
       </View>
 
-      <View className="mb-6">
-        <Text className="text-gray-400 text-sm font-medium uppercase tracking-wider mb-3">
+      <View style={{ marginBottom: 24 }}>
+        <Text style={{ color: '#64748b', fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>
           About
         </Text>
-        <View className="bg-vpn-900/60 border border-vpn-800/50 rounded-xl p-4">
-          <Text className="text-white font-semibold text-lg">BeardVpn</Text>
-          <Text className="text-gray-400 text-sm mt-1">Version 1.0.0</Text>
-          <Text className="text-gray-500 text-xs mt-3">
+        <View style={{ backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155', borderRadius: 14, padding: 16 }}>
+          <Text style={{ color: '#f1f5f9', fontSize: 18, fontWeight: '700' }}>BeardVpn</Text>
+          <Text style={{ color: '#64748b', fontSize: 13, marginTop: 4 }}>Version 1.0.0</Text>
+          <Text style={{ color: '#475569', fontSize: 12, marginTop: 10, lineHeight: 18 }}>
             Free VPN servers provided by VPN Gate Academic Experiment Project
             (University of Tsukuba, Japan). Servers are community-contributed
             and may be unavailable at times.
@@ -95,7 +102,7 @@ export function SettingsScreen({ dns, onDNSSet }: SettingsScreenProps) {
         </View>
       </View>
 
-      <Text className="text-gray-600 text-xs text-center">
+      <Text style={{ color: '#475569', fontSize: 11, textAlign: 'center', lineHeight: 16 }}>
         Privacy: We do not log, store, or sell any user data.
         All connection data is processed locally on your device.
       </Text>

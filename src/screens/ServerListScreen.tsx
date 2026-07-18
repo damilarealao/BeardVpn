@@ -68,29 +68,40 @@ export function ServerListScreen({
     onGoBack();
   };
 
+  const freeCount = servers.filter((s) => s.isFree).length;
+
   return (
-    <View className="flex-1 bg-vpn-950" style={{ paddingTop: insets.top }}>
-      <View className="flex-row items-center px-4 py-3">
-        <Pressable onPress={onGoBack} className="mr-3 p-2">
-          <Text className="text-vpn-400 text-xl">{'\u2039'}</Text>
+    <View style={{ flex: 1, backgroundColor: '#0f172a', paddingTop: insets.top }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12 }}>
+        <Pressable onPress={onGoBack} style={{ marginRight: 12, padding: 8 }}>
+          <Text style={{ color: '#60a5fa', fontSize: 24 }}>{'\u2039'}</Text>
         </Pressable>
-        <Text className="text-white text-xl font-bold flex-1">Servers</Text>
-        <Text className="text-gray-400 text-sm">
-          {servers.filter((s) => s.isFree).length} free
-        </Text>
+        <Text style={{ color: '#f1f5f9', fontSize: 22, fontWeight: 'bold', flex: 1 }}>Servers</Text>
+        <View style={{ backgroundColor: '#1e293b', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}>
+          <Text style={{ color: '#4ade80', fontSize: 13, fontWeight: '600' }}>{freeCount} free</Text>
+        </View>
       </View>
 
-      <View className="px-4 mb-3">
+      <View style={{ paddingHorizontal: 16, marginBottom: 12 }}>
         <TextInput
           value={search}
           onChangeText={setSearch}
           placeholder="Search servers..."
-          placeholderTextColor="#64748b"
-          className="bg-vpn-900/60 border border-vpn-800/50 rounded-xl px-4 py-3 text-white"
+          placeholderTextColor='#475569'
+          style={{
+            backgroundColor: '#1e293b',
+            borderWidth: 1,
+            borderColor: '#334155',
+            borderRadius: 12,
+            paddingHorizontal: 16,
+            paddingVertical: 12,
+            color: '#f1f5f9',
+            fontSize: 15,
+          }}
         />
       </View>
 
-      <View className="mb-3">
+      <View style={{ marginBottom: 8 }}>
         <FlatList
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -103,13 +114,17 @@ export function ServerListScreen({
             return (
               <Pressable
                 onPress={() => setSelectedCountry(item)}
-                className={`mr-2 px-3 py-1.5 rounded-full border ${
-                  isSelected
-                    ? 'bg-vpn-600 border-vpn-500'
-                    : 'bg-vpn-900/40 border-vpn-800/30'
-                }`}
+                style={{
+                  marginRight: 8,
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
+                  borderRadius: 20,
+                  borderWidth: 1,
+                  backgroundColor: isSelected ? '#2563eb' : '#1e293b',
+                  borderColor: isSelected ? '#3b82f6' : '#334155',
+                }}
               >
-                <Text className={`text-sm ${isSelected ? 'text-white' : 'text-gray-400'}`}>
+                <Text style={{ fontSize: 13, color: isSelected ? '#ffffff' : '#94a3b8', fontWeight: isSelected ? '600' : '400' }}>
                   {flag ? `${flag} ` : ''}{item || 'All'}
                 </Text>
               </Pressable>
@@ -119,15 +134,15 @@ export function ServerListScreen({
       </View>
 
       {isLoading && !refreshing ? (
-        <View className="flex-1 items-center justify-center">
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           <ActivityIndicator size="large" color="#3b82f6" />
-          <Text className="text-gray-400 mt-3">Loading servers...</Text>
+          <Text style={{ color: '#94a3b8', marginTop: 12 }}>Loading servers...</Text>
         </View>
       ) : (
         <FlatList
           data={filteredServers}
           keyExtractor={(item) => item.ip}
-          contentContainerStyle={{ paddingBottom: 40 }}
+          contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -136,8 +151,8 @@ export function ServerListScreen({
             />
           }
           ListEmptyComponent={
-            <View className="items-center py-12">
-              <Text className="text-gray-400">No servers found</Text>
+            <View style={{ alignItems: 'center', paddingVertical: 48 }}>
+              <Text style={{ color: '#64748b', fontSize: 15 }}>No servers found</Text>
             </View>
           }
           renderItem={({ item }) => (

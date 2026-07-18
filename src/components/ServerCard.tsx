@@ -14,54 +14,57 @@ export function ServerCard({ server, isSelected, onSelect }: ServerCardProps) {
   const flag = COUNTRY_FLAGS[server.countryShort] || '\u{1F310}';
   const speedMbps = (server.speed * 8) / (1024 * 1024);
 
-  const speedColor =
-    speedMbps >= 100 ? 'text-connected' : speedMbps >= 10 ? 'text-yellow-400' : 'text-red-400';
-
-  const pingColor =
-    server.ping < 50 ? 'text-connected' : server.ping < 150 ? 'text-yellow-400' : 'text-red-400';
+  const speedColor = speedMbps >= 100 ? '#4ade80' : speedMbps >= 10 ? '#facc15' : '#f87171';
+  const pingColor = server.ping < 50 ? '#4ade80' : server.ping < 150 ? '#facc15' : '#f87171';
 
   return (
     <Pressable
       onPress={() => onSelect(server)}
-      className={`flex-row items-center p-4 mx-4 mb-2 rounded-xl border ${
-        isSelected
-          ? 'bg-vpn-800/80 border-vpn-500'
-          : 'bg-vpn-900/50 border-vpn-800/50'
-      }`}
-      style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
+      style={({ pressed }) => ({
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+        marginHorizontal: 16,
+        marginBottom: 6,
+        borderRadius: 14,
+        borderWidth: 1,
+        backgroundColor: isSelected ? 'rgba(30,64,175,0.4)' : '#1e293b',
+        borderColor: isSelected ? '#3b82f6' : '#334155',
+        opacity: pressed ? 0.8 : 1,
+      })}
     >
-      <Text className="text-2xl mr-3">{flag}</Text>
+      <Text style={{ fontSize: 28, marginRight: 12 }}>{flag}</Text>
 
-      <View className="flex-1">
-        <View className="flex-row items-center">
-          <Text className="text-white font-semibold text-base">{server.countryLong}</Text>
-          {server.isFree && (
-            <View className="ml-2 px-2 py-0.5 rounded-full bg-connected/20">
-              <Text className="text-connected text-xs font-bold">FREE</Text>
+      <View style={{ flex: 1 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Text style={{ color: '#f1f5f9', fontSize: 16, fontWeight: '600' }}>{server.countryLong}</Text>
+          {server.isFree ? (
+            <View style={{ marginLeft: 8, backgroundColor: 'rgba(34,197,94,0.15)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 }}>
+              <Text style={{ color: '#4ade80', fontSize: 11, fontWeight: '700' }}>FREE</Text>
             </View>
-          )}
-          {!server.isFree && (
-            <View className="ml-2 px-2 py-0.5 rounded-full bg-vpn-500/20">
-              <Text className="text-vpn-300 text-xs font-bold">PRO</Text>
+          ) : (
+            <View style={{ marginLeft: 8, backgroundColor: 'rgba(139,92,246,0.15)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 }}>
+              <Text style={{ color: '#a78bfa', fontSize: 11, fontWeight: '700' }}>PRO</Text>
             </View>
           )}
         </View>
-        <Text className="text-gray-400 text-xs mt-1">
-          {server.hostName} &bull; {server.operator || 'Unknown'}
+        <Text style={{ color: '#64748b', fontSize: 12, marginTop: 3 }}>
+          {server.hostName} \u2022 {server.operator || 'Unknown'}
         </Text>
       </View>
 
-      <View className="items-end">
-        <Text className={`text-sm font-mono ${speedColor}`}>
+      <View style={{ alignItems: 'flex-end' }}>
+        <Text style={{ fontSize: 13, fontWeight: '600', color: speedColor, fontFamily: 'monospace' }}>
           {formatSpeed(server.speed)}
         </Text>
-        <Text className={`text-xs font-mono ${pingColor}`}>
+        <Text style={{ fontSize: 11, color: pingColor, fontFamily: 'monospace', marginTop: 2 }}>
           {formatPing(server.ping)}
         </Text>
       </View>
 
       {isSelected && (
-        <View className="ml-3 w-3 h-3 rounded-full bg-vpn-500" />
+        <View style={{ marginLeft: 12, width: 8, height: 8, borderRadius: 4, backgroundColor: '#3b82f6' }} />
       )}
     </Pressable>
   );

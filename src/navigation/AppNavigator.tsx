@@ -1,7 +1,8 @@
 import React from 'react';
+import { View, Text, Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Text } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HomeScreen } from '../screens/HomeScreen';
 import { ServerListScreen } from '../screens/ServerListScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
@@ -23,6 +24,21 @@ interface AppNavigatorProps {
   onDNSSet: (dns: string) => void;
 }
 
+function TabIcon({ name, color, focused }: { name: string; color: string; focused: boolean }) {
+  const icons: Record<string, string> = {
+    Home: '\u2302',
+    Servers: '\u2630',
+    Settings: '\u2699',
+  };
+  return (
+    <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+      <Text style={{ fontSize: 20, color, opacity: focused ? 1 : 0.6 }}>
+        {icons[name] || '\u25CF'}
+      </Text>
+    </View>
+  );
+}
+
 export function AppNavigator({
   connection,
   servers,
@@ -36,6 +52,9 @@ export function AppNavigator({
   dns,
   onDNSSet,
 }: AppNavigatorProps) {
+  const insets = useSafeAreaInsets();
+  const bottomPad = Math.max(insets.bottom, 8);
+
   return (
     <NavigationContainer>
       <Tab.Navigator
@@ -44,9 +63,10 @@ export function AppNavigator({
           tabBarStyle: {
             backgroundColor: '#0f172a',
             borderTopColor: '#1e293b',
-            paddingBottom: 8,
+            borderTopWidth: 1,
+            paddingBottom: bottomPad,
             paddingTop: 8,
-            height: 65,
+            height: 60 + bottomPad,
           },
           tabBarActiveTintColor: '#3b82f6',
           tabBarInactiveTintColor: '#64748b',
@@ -59,8 +79,8 @@ export function AppNavigator({
         <Tab.Screen
           name="Home"
           options={{
-            tabBarIcon: ({ color }) => (
-              <Text style={{ fontSize: 22, color }}>{'\u{25B2}'}</Text>
+            tabBarIcon: ({ color, focused }) => (
+              <TabIcon name="Home" color={color} focused={focused} />
             ),
           }}
         >
@@ -78,8 +98,8 @@ export function AppNavigator({
         <Tab.Screen
           name="Servers"
           options={{
-            tabBarIcon: ({ color }) => (
-              <Text style={{ fontSize: 22, color }}>{'\u{25A0}'}</Text>
+            tabBarIcon: ({ color, focused }) => (
+              <TabIcon name="Servers" color={color} focused={focused} />
             ),
           }}
         >
@@ -98,8 +118,8 @@ export function AppNavigator({
         <Tab.Screen
           name="Settings"
           options={{
-            tabBarIcon: ({ color }) => (
-              <Text style={{ fontSize: 22, color }}>{'\u{2699}'}</Text>
+            tabBarIcon: ({ color, focused }) => (
+              <TabIcon name="Settings" color={color} focused={focused} />
             ),
           }}
         >
