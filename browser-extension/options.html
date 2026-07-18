@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BeardVpn Settings</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      padding: 40px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .logo-icon {
+      font-size: 32px;
+    }
+
+    .logo-text {
+      font-size: 24px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .section {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #334155;
+    }
+
+    .setting-row:last-child {
+      border-bottom: none;
+    }
+
+    .setting-label {
+      font-size: 14px;
+    }
+
+    .setting-desc {
+      font-size: 12px;
+      color: #64748b;
+      margin-top: 4px;
+    }
+
+    .toggle {
+      position: relative;
+      width: 48px;
+      height: 24px;
+      background: #334155;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .toggle.active {
+      background: #3b82f6;
+    }
+
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.3s ease;
+    }
+
+    .toggle.active::after {
+      transform: translateX(24px);
+    }
+
+    select {
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #e2e8f0;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .premium-status {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .premium-badge {
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .premium-badge.active {
+      background: linear-gradient(135deg, #f59e0b, #f97316);
+      color: #0f172a;
+    }
+
+    .premium-badge.inactive {
+      background: #334155;
+      color: #94a3b8;
+    }
+
+    .btn {
+      background: #3b82f6;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .btn:hover {
+      background: #2563eb;
+    }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid #334155;
+      color: #94a3b8;
+    }
+
+    .btn-secondary:hover {
+      background: #334155;
+      color: #e2e8f0;
+    }
+
+    .btn-danger {
+      background: #ef4444;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 32px;
+      color: #64748b;
+      font-size: 12px;
+    }
+
+    .version {
+      color: #3b82f6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <span class="logo-icon">🛡️</span>
+      <span class="logo-text">BeardVpn Settings</span>
+    </div>
+
+    <!-- Premium Section -->
+    <div class="section">
+      <div class="section-title">Premium Status</div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Current Plan</div>
+          <div class="setting-desc">Premium gives access to all servers</div>
+        </div>
+        <div class="premium-status">
+          <span class="premium-badge" id="premiumBadge">FREE</span>
+          <span id="premiumExpiry" style="font-size: 12px; color: #64748b;"></span>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div>
+          <button class="btn" id="activatePremiumBtn">Activate Premium</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Connection Settings -->
+    <div class="section">
+      <div class="section-title">Connection Settings</div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Auto-reconnect</div>
+          <div class="setting-desc">Automatically reconnect if connection drops</div>
+        </div>
+        <div class="toggle active" id="autoReconnect"></div>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Default Protocol</div>
+          <div class="setting-desc">Choose preferred proxy protocol</div>
+        </div>
+        <select id="protocol">
+          <option value="socks5">SOCKS5</option>
+          <option value="http">HTTP</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Bypass List</div>
+          <div class="setting-desc">Domains that bypass the proxy</div>
+        </div>
+        <button class="btn btn-secondary" id="editBypassBtn">Edit</button>
+      </div>
+    </div>
+
+    <!-- Data Settings -->
+    <div class="section">
+      <div class="section-title">Data Settings</div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Show Data Counter</div>
+          <div class="setting-desc">Display uploaded/downloaded data in popup</div>
+        </div>
+        <div class="toggle active" id="showDataCounter"></div>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Reset Data Counter</div>
+          <div class="setting-desc">Clear all accumulated data statistics</div>
+        </div>
+        <button class="btn btn-danger" id="resetDataBtn">Reset</button>
+      </div>
+    </div>
+
+    <!-- Ad Configuration Section -->
+    <div class="section">
+      <div class="section-title">Ad Configuration</div>
+      <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 12px;">
+        <div>
+          <div class="setting-label">Your Ad Code</div>
+          <div class="setting-desc">Paste your ad HTML/JavaScript here. This shows in the popup bottom banner. Supports AdSense, custom banners, or any ad network code.</div>
+        </div>
+        <textarea id="adHtml" rows="6" placeholder="<!-- Paste your ad HTML here -->&#10;Example:&#10;<a href='https://yoursite.com'>&#10;  <img src='banner.jpg' width='300' height='60'>&#10;</a>" style="width: 100%; background: #0f172a; border: 1px solid #334155; color: #e2e8f0; padding: 12px; border-radius: 8px; font-family: monospace; font-size: 12px; resize: vertical;"></textarea>
+        <textarea id="adScripts" rows="3" placeholder="/* Optional: JavaScript for your ad (e.g. tracking, click handlers) */" style="width: 100%; background: #0f172a; border: 1px solid #334155; color: #e2e8f0; padding: 12px; border-radius: 8px; font-family: monospace; font-size: 12px; resize: vertical;"></textarea>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn" id="saveAdBtn">Save Ad</button>
+          <button class="btn btn-secondary" id="previewAdBtn">Preview</button>
+          <button class="btn btn-danger" id="clearAdBtn">Clear Ad</button>
+        </div>
+        <div id="adPreview" style="width: 100%; min-height: 60px; background: #1e293b; border-radius: 8px; display: none; overflow: hidden;"></div>
+        <div id="adStatus" style="font-size: 12px; color: #64748b;"></div>
+      </div>
+    </div>
+
+    <!-- About Section -->
+    <div class="section">
+      <div class="section-title">About</div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Version</div>
+          <div class="setting-desc">Current extension version</div>
+        </div>
+        <span class="version">1.0.0</span>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Clear All Data</div>
+          <div class="setting-desc">Remove all settings and cached data</div>
+        </div>
+        <button class="btn btn-danger" id="clearDataBtn">Clear</button>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>BeardVpn - Free Proxy VPN Extension</p>
+      <p>Route your browser traffic through secure proxy servers</p>
+    </div>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>

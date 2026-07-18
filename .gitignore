@@ -1,0 +1,50 @@
+# dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Android build artifacts (keep source code)
+/android/app/build/
+/android/.gradle/
+/android/build/
+/android/local.properties
+/android/app/release/
+*.apk
+*.aab
+
+# Native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# local env files
+.env
+.env.*
+.env.local
+.env.*.local
+
+# typescript
+*.tsbuildinfo
+
+# logs
+*.log
