@@ -435,7 +435,7 @@ function startDataTracking() {
   }, 1000);
 }
 
-// Load and render ad banner
+// Load and render ad banner via iframe (CSP-safe)
 async function loadAdBanner() {
   const adBanner = document.getElementById('adBanner');
   if (!adBanner) return;
@@ -445,7 +445,7 @@ async function loadAdBanner() {
       api.storage.local.get('adConfig', resolve);
     });
 
-    // If user has custom ad HTML, use that
+    // If user has custom ad HTML, use that directly
     if (result.adConfig && result.adConfig.enabled && result.adConfig.html) {
       adBanner.innerHTML = result.adConfig.html;
       adBanner.classList.add('has-ad');
@@ -460,13 +460,15 @@ async function loadAdBanner() {
     console.log('No custom ad config, using default');
   }
 
-  // Default: load Monetag ad
-  const script = document.createElement('script');
-  script.src = 'https://quge5.com/88/tag.min.js';
-  script.setAttribute('data-zone', '260947');
-  script.setAttribute('async', '');
-  script.setAttribute('data-cfasync', 'false');
-  adBanner.appendChild(script);
+  // Default: load Monetag ad via iframe (CSP-safe)
+  const iframe = document.createElement('iframe');
+  iframe.src = 'https://damilarealao.github.io/ad.html';
+  iframe.style.width = '100%';
+  iframe.style.height = '80px';
+  iframe.style.border = 'none';
+  iframe.style.borderRadius = '10px';
+  iframe.style.overflow = 'hidden';
+  adBanner.appendChild(iframe);
   adBanner.classList.add('has-ad');
 }
 
