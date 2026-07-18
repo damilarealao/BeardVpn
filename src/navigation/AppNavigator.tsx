@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, Platform } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { View, Text } from 'react-native';
+import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HomeScreen } from '../screens/HomeScreen';
@@ -84,14 +84,14 @@ export function AppNavigator({
             ),
           }}
         >
-          {() => (
+          {({ navigation }) => (
             <HomeScreen
               connection={connection}
               selectedServer={selectedServer}
+              servers={servers}
               onConnect={onConnect}
               onDisconnect={onDisconnect}
-              onServerListPress={() => {}}
-              premiumUnlocked={premiumUnlocked}
+              onServerListPress={() => navigation.navigate('Servers' as never)}
             />
           )}
         </Tab.Screen>
@@ -103,7 +103,7 @@ export function AppNavigator({
             ),
           }}
         >
-          {() => (
+          {({ navigation }) => (
             <ServerListScreen
               servers={servers}
               selectedServer={selectedServer}
@@ -111,7 +111,7 @@ export function AppNavigator({
               isLoading={isLoading}
               onRefresh={onRefresh}
               premiumUnlocked={premiumUnlocked}
-              onGoBack={() => {}}
+              onGoBack={() => navigation.navigate('Home' as never)}
             />
           )}
         </Tab.Screen>

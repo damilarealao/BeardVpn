@@ -51,22 +51,58 @@ function rankServers(servers: VPNServer[]): VPNServer[] {
     });
 }
 
-export async function fetchServers(): Promise<VPNServer[]> {
-  try {
-    const response = await fetch(API.VPNGATE_CSV);
-    const text = await response.text();
-    const all = parseVPNGateCSV(text);
-    const ranked = rankServers(all);
+const ALTERNATIVE_URLS = [
+  'https://www.vpngate.net/api/iphone/',
+  'http://www.vpngate.net/api/iphone/',
+  'https://vpntest.net/api/iphone/',
+];
 
-    const freeCount = Math.min(APP.MAX_FREE_SERVERS, ranked.length);
-    return ranked.map((server, index) => ({
-      ...server,
-      isFree: index < freeCount,
-    }));
-  } catch (error) {
-    console.error('Failed to fetch VPN servers:', error);
-    throw error;
+export async function fetchServers(): Promise<VPNServer[]> {
+  let lastError: Error | null = null;
+
+  for (const url of ALTERNATIVE_URLS) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
+
+      const response = await fetch(url, {
+        signal: controller.signal,
+        headers: {
+          'Accept': 'text/csv,text/plain,*/*',
+        },
+      });
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const text = await response.text();
+
+      if (!text || text.length < 100) {
+        throw new Error('Response too short');
+      }
+
+      const all = parseVPNGateCSV(text);
+
+      if (all.length === 0) {
+        throw new Error('No servers parsed from response');
+      }
+
+      const ranked = rankServers(all);
+      const freeCount = Math.min(APP.MAX_FREE_SERVERS, ranked.length);
+      return ranked.map((server, index) => ({
+        ...server,
+        isFree: index < freeCount,
+      }));
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      console.warn(`Failed to fetch from ${url}:`, lastError.message);
+      continue;
+    }
   }
+
+  throw lastError || new Error('Failed to fetch servers from all sources');
 }
 
 export function formatSpeed(bytesPerSec: number): string {

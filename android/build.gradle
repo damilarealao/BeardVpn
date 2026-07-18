@@ -21,7 +21,7 @@ allprojects {
 }
 
 ext {
-    ndkVersion = "27.0.12077973"
+  ndkVersion = "27.0.12077973"
 }
 
 apply plugin: "expo-root-project"

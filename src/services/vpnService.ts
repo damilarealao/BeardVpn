@@ -4,7 +4,7 @@ import { VPNStatus, VPNServer } from '../types';
 interface VPNModuleInterface {
   connect(config: { serverIp: string; ovpnConfig: string; dns: string }): Promise<void>;
   disconnect(): Promise<void>;
-  getStatus(): Promise<VPNStatus>;
+  getStatus(): Promise<{ status: string }>;
   getStats(): Promise<{ bytesIn: number; bytesOut: number }>;
 }
 
@@ -28,13 +28,16 @@ export const vpnService: VPNModuleInterface = VPNModule
         );
       },
       disconnect: async () => {},
-      getStatus: async () => 'disconnected' as VPNStatus,
+      getStatus: async () => ({ status: 'disconnected' }),
       getStats: async () => ({ bytesIn: 0, bytesOut: 0 }),
     };
 
 export function onVPNStateChanged(callback: (status: VPNStatus) => void) {
   if (!vpnEmitter) return () => {};
-  const subscription = vpnEmitter.addListener('onVPNStateChanged', callback);
+  const subscription = vpnEmitter.addListener('onVPNStateChanged', (event: any) => {
+    const status = event?.status || event;
+    callback(status as VPNStatus);
+  });
   return () => subscription.remove();
 }
 

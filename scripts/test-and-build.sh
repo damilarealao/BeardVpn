@@ -30,14 +30,13 @@ FAILED_TESTS=()
 # ============================================================================
 # Helpers
 # ============================================================================
-pass() { ((PASS++)); ((TOTAL++)); echo -e "  ${GREEN}PASS${NC} $1"; }
-fail() { ((FAIL++)); ((TOTAL++)); FAILED_TESTS+=("$1"); echo -e "  ${RED}FAIL${NC} $1"; }
-warn() { ((WARN++)); ((TOTAL++)); echo -e "  ${YELLOW}WARN${NC} $1"; }
+pass() { PASS=$((PASS+1)); TOTAL=$((TOTAL+1)); echo -e "  ${GREEN}PASS${NC} $1"; }
+fail() { FAIL=$((FAIL+1)); TOTAL=$((TOTAL+1)); FAILED_TESTS+=("$1"); echo -e "  ${RED}FAIL${NC} $1"; }
+warn() { WARN=$((WARN+1)); TOTAL=$((TOTAL+1)); echo -e "  ${YELLOW}WARN${NC} $1"; }
 info() { echo -e "${BLUE}$1${NC}"; }
 header() { echo -e "\n${CYAN}━━━ $1 ━━━${NC}"; }
 check_file() { [ -f "$1" ] && pass "Exists: $(basename "$1")" || fail "Missing: $1"; }
 
-# Check file contains string
 check_content() {
   local file="$1" pattern="$2" label="$3"
   if [ -f "$file" ] && grep -q "$pattern" "$file"; then
@@ -52,7 +51,6 @@ check_content() {
   fi
 }
 
-# Check file does NOT contain string
 check_not_content() {
   local file="$1" pattern="$2" label="$3"
   if [ -f "$file" ] && ! grep -q "$pattern" "$file"; then
@@ -158,50 +156,33 @@ done
 # ============================================================================
 header "T4: NativeWind v4 Setup (Styling)"
 
-# global.css exists
 check_file "$PROJECT_ROOT/global.css"
-
-# global.css has tailwind directives
 check_content "$PROJECT_ROOT/global.css" "@tailwind base" "global.css: has @tailwind base"
 check_content "$PROJECT_ROOT/global.css" "@tailwind components" "global.css: has @tailwind components"
 check_content "$PROJECT_ROOT/global.css" "@tailwind utilities" "global.css: has @tailwind utilities"
-
-# global.css is imported in App.tsx (THE MOST COMMON BUG)
 check_content "$PROJECT_ROOT/App.tsx" "global.css" "App.tsx: imports global.css (NativeWind styles load)"
 
-# tailwind.config.js
 check_file "$PROJECT_ROOT/tailwind.config.js"
 check_content "$PROJECT_ROOT/tailwind.config.js" "nativewind/preset" "tailwind.config: uses nativewind preset"
-check_content "$PROJECT_ROOT/tailwind.config.js" "vpn" "tailwind.config: has vpn colors"
-check_content "$PROJECT_ROOT/tailwind.config.js" "connected" "tailwind.config: has connected color"
 
-# metro.config.js uses withNativeWind
 check_file "$PROJECT_ROOT/metro.config.js"
 check_content "$PROJECT_ROOT/metro.config.js" "withNativeWind" "metro.config: uses withNativeWind"
 check_content "$PROJECT_ROOT/metro.config.js" "global.css" "metro.config: references global.css"
 
-# babel.config.js
 check_content "$PROJECT_ROOT/babel.config.js" "nativewind" "babel.config: nativewind preset"
-check_content "$PROJECT_ROOT/babel.config.js" "jsxImportSource" "babel.config: jsxImportSource set"
 
-# nativewind-env.d.ts
 check_file "$PROJECT_ROOT/nativewind-env.d.ts"
 check_content "$PROJECT_ROOT/nativewind-env.d.ts" "nativewind/types" "nativewind-env.d.ts: references types"
 
 # ============================================================================
-# T5: SafeArea Setup (prevents bleed into status/nav bars)
+# T5: SafeArea Setup
 # ============================================================================
 header "T5: SafeArea Setup"
 
-# SafeAreaProvider wraps the app
 check_content "$PROJECT_ROOT/App.tsx" "SafeAreaProvider" "App.tsx: wraps with SafeAreaProvider"
-
-# All screens use useSafeAreaInsets
 check_content "$PROJECT_ROOT/src/screens/HomeScreen.tsx" "useSafeAreaInsets" "HomeScreen: uses useSafeAreaInsets"
 check_content "$PROJECT_ROOT/src/screens/ServerListScreen.tsx" "useSafeAreaInsets" "ServerListScreen: uses useSafeAreaInsets"
 check_content "$PROJECT_ROOT/src/screens/SettingsScreen.tsx" "useSafeAreaInsets" "SettingsScreen: uses useSafeAreaInsets"
-
-# Navigator accounts for bottom insets
 check_content "$PROJECT_ROOT/src/navigation/AppNavigator.tsx" "useSafeAreaInsets" "Navigator: uses useSafeAreaInsets"
 check_content "$PROJECT_ROOT/src/navigation/AppNavigator.tsx" "insets.bottom" "Navigator: uses insets.bottom for tab bar padding"
 
@@ -235,7 +216,6 @@ check_file "$JAVA_SRC/MainActivity.kt"
 check_file "$JAVA_SRC/MainApplication.kt"
 check_file "$JAVA_SRC/VPNModule.kt"
 
-# VPN Service (either name)
 VPN_SVC=false
 for v in VPNService.kt BeardVpnService.kt; do
   if [ -f "$JAVA_SRC/$v" ]; then pass "VPN Service: $v"; VPN_SVC=true; break; fi
@@ -253,12 +233,14 @@ MANIFEST="$ANDROID_DIR/app/src/main/AndroidManifest.xml"
 check_file "$MANIFEST"
 
 check_content "$MANIFEST" "android.permission.INTERNET" "Permission: INTERNET"
-check_content "$MANIFEST" "android.permission.FOREREGROUND_SERVICE" "Permission: FOREGROUND_SERVICE" || \
 check_content "$MANIFEST" "FOREGROUND_SERVICE" "Permission: FOREGROUND_SERVICE"
 check_content "$MANIFEST" "ACCESS_NETWORK_STATE" "Permission: ACCESS_NETWORK_STATE"
 check_content "$MANIFEST" "android.net.VpnService" "Manifest: VPN service intent filter"
 check_content "$MANIFEST" "BeardVpnService" "Manifest: BeardVpnService declared"
 check_content "$MANIFEST" "BIND_VPN_SERVICE" "Manifest: BIND_VPN_SERVICE permission"
+
+# Network security config for HTTP VPN Gate API
+check_content "$MANIFEST" "networkSecurityConfig" "Manifest: networkSecurityConfig reference"
 
 # ============================================================================
 # T9: VPN Native Module Integration
@@ -269,17 +251,17 @@ check_content "$JAVA_SRC/MainApplication.kt" "VPNPackage" "MainApplication: regi
 check_content "$JAVA_SRC/VPNModule.kt" '"VPNModule"' "VPNModule: correct native name"
 check_content "$PROJECT_ROOT/src/services/vpnService.ts" "VPNModule" "JS bridge: references VPNModule"
 
-# VPN methods
 for method in connect disconnect getStatus getStats; do
-  check_content "$JAVA_SRC/VPNModule.kt" "@ReactMethod" "VPNModule: has @ReactMethod annotations" && break
   check_content "$JAVA_SRC/VPNModule.kt" "$method" "VPNModule: method $method"
 done
 
-# VPN events
 check_content "$JAVA_SRC/VPNModule.kt" "onVPNStateChanged" "VPNModule: emits onVPNStateChanged"
-
-# JS events match
 check_content "$PROJECT_ROOT/src/services/vpnService.ts" "onVPNStateChanged" "JS bridge: listens to onVPNStateChanged"
+
+# BeardVpnService notification (foreground service shows in notification bar)
+check_content "$JAVA_SRC/BeardVpnService.kt" "startForeground" "VPN Service: shows foreground notification"
+check_content "$JAVA_SRC/BeardVpnService.kt" "NotificationChannel" "VPN Service: creates notification channel"
+check_content "$JAVA_SRC/BeardVpnService.kt" "setSession" "VPN Service: sets VPN session name"
 
 # ============================================================================
 # T10: Ad Integration
@@ -290,26 +272,55 @@ check_content "$PROJECT_ROOT/src/config/adConfig.ts" "zoneId" "Ad config: zoneId
 check_content "$PROJECT_ROOT/src/config/adConfig.ts" "scriptUrl" "Ad config: scriptUrl set"
 check_content "$PROJECT_ROOT/src/components/MonetagAd.tsx" "WebView" "MonetagAd: uses WebView"
 check_content "$PROJECT_ROOT/App.tsx" "MonetagAd" "App: integrates MonetagAd"
+check_content "$PROJECT_ROOT/App.tsx" "showAd" "App: has showAd state"
+check_content "$PROJECT_ROOT/App.tsx" "shouldShowAd" "App: has ad cooldown logic"
 
 # ============================================================================
-# T11: UI Design Checks
+# T11: UI Design Validation
 # ============================================================================
 header "T11: UI Design Validation"
 
-# Dark theme background color in screens
+# Dark theme background - check for dark navy colors
 for screen in HomeScreen ServerListScreen SettingsScreen; do
-  check_content "$PROJECT_ROOT/src/screens/${screen}.tsx" "#0f172a" "${screen}: dark background color"
+  if grep -qE "#0a0f1e|#0f172a|#111827" "$PROJECT_ROOT/src/screens/${screen}.tsx" 2>/dev/null; then
+    pass "${screen}: dark background color"
+  else
+    fail "${screen}: missing dark background color"
+  fi
 done
 
-# ConnectButton has modern design
+# ConnectButton: proper VPN power icon design
 check_content "$PROJECT_ROOT/src/components/ConnectButton.tsx" "Animated" "ConnectButton: uses Animated API"
-check_content "$PROJECT_ROOT/src/components/ConnectButton.tsx" "pulseAnim" "ConnectButton: has pulse animation"
+check_content "$PROJECT_ROOT/src/components/ConnectButton.tsx" "CONNECT" "ConnectButton: has connect text"
 
 # Navigator has proper tab bar styling
-check_content "$PROJECT_ROOT/src/navigation/AppNavigator.tsx" "backgroundColor.*0f172a" "Navigator: dark tab bar"
+if grep -qE "backgroundColor.*#(0f172a|0a0f1e)" "$PROJECT_ROOT/src/navigation/AppNavigator.tsx" 2>/dev/null; then
+  pass "Navigator: dark tab bar"
+else
+  fail "Navigator: missing dark tab bar"
+fi
 check_content "$PROJECT_ROOT/src/navigation/AppNavigator.tsx" "borderTopColor" "Navigator: tab bar border"
 
-# No white backgrounds (would indicate broken styling)
+# HomeScreen passes servers to display
+check_content "$PROJECT_ROOT/src/screens/HomeScreen.tsx" "servers" "HomeScreen: receives servers prop"
+check_content "$PROJECT_ROOT/src/screens/HomeScreen.tsx" "selectedServer" "HomeScreen: receives selectedServer prop"
+
+# HomeScreen has VPN branding
+check_content "$PROJECT_ROOT/src/screens/HomeScreen.tsx" "BeardVpn" "HomeScreen: shows app name"
+check_content "$PROJECT_ROOT/src/screens/HomeScreen.tsx" "Shield\|shield\|PROTECTED\|NOT CONNECTED" "HomeScreen: shows VPN status"
+
+# ServerListScreen has search
+check_content "$PROJECT_ROOT/src/screens/ServerListScreen.tsx" "TextInput" "ServerList: has search input"
+check_content "$PROJECT_ROOT/src/screens/ServerListScreen.tsx" "countryShort" "ServerList: searches by countryShort"
+check_content "$PROJECT_ROOT/src/screens/ServerListScreen.tsx" "operator" "ServerList: searches by operator"
+
+# ServerListScreen has pull-to-refresh
+check_content "$PROJECT_ROOT/src/screens/ServerListScreen.tsx" "RefreshControl" "ServerList: has pull-to-refresh"
+
+# Navigator connects Home -> Servers navigation
+check_content "$PROJECT_ROOT/src/navigation/AppNavigator.tsx" "navigation.navigate" "Navigator: tabs navigate to each other"
+
+# No white backgrounds
 for f in $(find src/screens src/components src/navigation -name "*.tsx" 2>/dev/null); do
   if grep -q "backgroundColor.*white\|bg-white" "$f" 2>/dev/null; then
     warn "$(basename "$f"): has white background"
@@ -329,7 +340,8 @@ if [ -z "$TS_OUTPUT" ]; then
 else
   TS_ERR_COUNT=$(echo "$TS_OUTPUT" | grep -c "error TS" || echo "0")
   if [ "$TS_ERR_COUNT" -gt 0 ]; then
-    warn "TypeScript: $TS_ERR_COUNT error(s)"
+    fail "TypeScript: $TS_ERR_COUNT error(s)"
+    echo "$TS_OUTPUT" | grep "error TS" | head -5
   else
     pass "TypeScript: warnings only"
   fi
@@ -344,9 +356,25 @@ check_content "$ANDROID_DIR/gradle.properties" "newArchEnabled=true" "New Archit
 check_content "$ANDROID_DIR/gradle.properties" "hermesEnabled=true" "Hermes: enabled"
 
 # ============================================================================
-# T14: Browser Extension Files
+# T14: Network Security Config
 # ============================================================================
-header "T14: Browser Extension"
+header "T14: Network Security"
+
+NSC="$ANDROID_DIR/app/src/main/res/xml/network_security_config.xml"
+check_file "$NSC"
+check_content "$NSC" "vpngate.net" "Network security: allows cleartext for vpngate.net"
+check_content "$NSC" "cleartextTrafficPermitted" "Network security: cleartext config present"
+
+# VPN Gate API URL uses HTTPS
+check_content "$PROJECT_ROOT/src/services/serverService.ts" "https" "ServerService: API URL uses HTTPS"
+
+# Server service has fallback URLs
+check_content "$PROJECT_ROOT/src/services/serverService.ts" "ALTERNATIVE_URLS\|fallback\|catch" "ServerService: has error handling/fallback"
+
+# ============================================================================
+# T15: Browser Extension Files
+# ============================================================================
+header "T15: Browser Extension"
 
 EXT_DIR="$PROJECT_ROOT/browser-extension"
 if [ -d "$EXT_DIR" ]; then
@@ -356,6 +384,10 @@ if [ -d "$EXT_DIR" ]; then
   for size in 16 32 48 128; do
     check_file "$EXT_DIR/icons/icon${size}.png"
   done
+  # Extension should be ad-free
+  check_not_content "$EXT_DIR/popup.html" "Monetag\|monetag\|quge5" "Extension: no Monetag ads"
+  check_not_content "$EXT_DIR/popup.js" "loadAdBanner\|watchAd" "Extension: no ad loading code"
+  check_not_content "$EXT_DIR/popup.html" "premium-dialog\|premiumDialog" "Extension: no premium dialog"
 else
   warn "Extension directory not found"
 fi
@@ -384,7 +416,6 @@ if ./gradlew assembleRelease \
     APK_SIZE=$(du -h "$APK_PATH" | cut -f1)
     pass "APK: $(basename "$APK_PATH") ($APK_SIZE)"
 
-    # Verify architecture inside APK
     APK_ARCH=$(unzip -l "$APK_PATH" 2>/dev/null | grep "\.so$" | head -1 | awk '{print $NF}' | cut -d/ -f2)
     if [ "$APK_ARCH" = "$ARCH" ]; then
       pass "APK architecture verified: $APK_ARCH"

@@ -9,9 +9,7 @@ let state = {
   currentServer: null,
   servers: [],
   dataUp: 0,
-  dataDown: 0,
-  premium: false,
-  premiumExpiry: 0
+  dataDown: 0
 };
 
 // Country flag emoji mapping
@@ -226,8 +224,6 @@ async function fetchAllServers() {
     return a.latency - b.latency;
   });
 
-  servers.forEach((s, i) => { s.free = i < 3; });
-
   return servers;
 }
 
@@ -343,9 +339,7 @@ async function saveState() {
     currentServer: state.currentServer,
     servers: state.servers,
     dataUp: state.dataUp,
-    dataDown: state.dataDown,
-    premium: state.premium,
-    premiumExpiry: state.premiumExpiry
+    dataDown: state.dataDown
   });
 }
 
@@ -353,7 +347,7 @@ async function saveState() {
 async function loadState() {
   const saved = await api.storage.local.get([
     'connected', 'currentServer', 'servers',
-    'dataUp', 'dataDown', 'premium', 'premiumExpiry'
+    'dataUp', 'dataDown'
   ]);
 
   if (saved.connected !== undefined) state.connected = saved.connected;
@@ -361,15 +355,6 @@ async function loadState() {
   if (saved.servers) state.servers = saved.servers;
   if (saved.dataUp) state.dataUp = saved.dataUp;
   if (saved.dataDown) state.dataDown = saved.dataDown;
-  if (saved.premium !== undefined) state.premium = saved.premium;
-  if (saved.premiumExpiry) state.premiumExpiry = saved.premiumExpiry;
-
-  // Check premium expiry
-  if (state.premium && state.premiumExpiry < Date.now()) {
-    state.premium = false;
-    state.premiumExpiry = 0;
-    await saveState();
-  }
 }
 
 // Handle messages from popup/options
@@ -389,9 +374,7 @@ async function handleMessage(message) {
         currentServer: state.currentServer,
         servers: state.servers,
         dataUp: state.dataUp,
-        dataDown: state.dataDown,
-        premium: state.premium,
-        premiumExpiry: state.premiumExpiry
+        dataDown: state.dataDown
       };
 
     case 'connect':
@@ -410,20 +393,6 @@ async function handleMessage(message) {
     case 'testLatency':
       const latency = await testProxy(message.server);
       return { latency };
-
-    case 'activatePremium':
-      state.premium = true;
-      state.premiumExpiry = Date.now() + (30 * 60 * 1000); // 30 minutes
-      await saveState();
-      return { success: true, expiry: state.premiumExpiry };
-
-    case 'checkPremium':
-      if (state.premium && state.premiumExpiry < Date.now()) {
-        state.premium = false;
-        state.premiumExpiry = 0;
-        await saveState();
-      }
-      return { premium: state.premium, expiry: state.premiumExpiry };
 
     case 'updateData':
       state.dataUp = message.up || state.dataUp;

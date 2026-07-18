@@ -64,9 +64,9 @@ export default function App() {
   if (isLoading) {
     return (
       <SafeAreaProvider>
-        <View className="flex-1 bg-vpn-950 items-center justify-center">
+        <View style={{ flex: 1, backgroundColor: '#0a0f1e', alignItems: 'center', justifyContent: 'center' }}>
           <ActivityIndicator size="large" color="#3b82f6" />
-          <Text className="text-gray-400 mt-4">Loading servers...</Text>
+          <Text style={{ color: '#94a3b8', marginTop: 16, fontSize: 15 }}>Loading servers...</Text>
         </View>
       </SafeAreaProvider>
     );

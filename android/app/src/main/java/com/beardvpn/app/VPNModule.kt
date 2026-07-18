@@ -1,19 +1,26 @@
 package com.beardvpn.app
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
-import android.net.VpnService
-import android.app.Activity
+import android.content.IntentFilter
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule
-import com.facebook.react.modules.core.PermissionAwareActivity
-import com.facebook.react.modules.core.PermissionListener
 
 class VPNModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
-    private var vpnServiceIntent: Intent? = null
     private var currentStatus: String = "disconnected"
-    private var bytesIn: Long = 0
-    private var bytesOut: Long = 0
+    private val eventReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val event = intent?.getStringExtra("event") ?: return
+            val status = intent.getStringExtra("status") ?: return
+            currentStatus = status
+            sendEvent(event, Arguments.createMap().apply {
+                putString("status", status)
+            })
+        }
+    }
+    private var receiverRegistered = false
 
     override fun getName(): String = "VPNModule"
 
@@ -27,7 +34,19 @@ class VPNModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMod
             val ovpnConfig = config.getString("ovpnConfig") ?: ""
             val dns = config.getString("dns") ?: "1.1.1.1"
 
-            startVpnService(serverIp, ovpnConfig, dns)
+            registerReceiver()
+
+            val intent = Intent(reactApplicationContext, BeardVpnService::class.java).apply {
+                action = BeardVpnService.ACTION_CONNECT
+                putExtra("serverIp", serverIp)
+                putExtra("ovpnConfig", ovpnConfig)
+                putExtra("dns", dns)
+            }
+            reactApplicationContext.startForegroundService(intent)
+            currentStatus = "connecting"
+            sendEvent("onVPNStateChanged", Arguments.createMap().apply {
+                putString("status", "connecting")
+            })
             promise.resolve(null)
         } catch (e: Exception) {
             promise.reject("CONNECT_ERROR", e.message, e)
@@ -37,15 +56,16 @@ class VPNModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMod
     @ReactMethod
     fun disconnect(promise: Promise) {
         try {
-            sendEvent("onVPNStateChanged", "disconnecting")
+            sendEvent("onVPNStateChanged", Arguments.createMap().apply {
+                putString("status", "disconnecting")
+            })
             currentStatus = "disconnecting"
 
-            val intent = Intent(reactApplicationContext, BeardVpnService::class.java)
-            intent.action = BeardVpnService.ACTION_DISCONNECT
+            val intent = Intent(reactApplicationContext, BeardVpnService::class.java).apply {
+                action = BeardVpnService.ACTION_DISCONNECT
+            }
             reactApplicationContext.startService(intent)
 
-            currentStatus = "disconnected"
-            sendEvent("onVPNStateChanged", "disconnected")
             promise.resolve(null)
         } catch (e: Exception) {
             promise.reject("DISCONNECT_ERROR", e.message, e)
@@ -62,32 +82,35 @@ class VPNModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMod
     @ReactMethod
     fun getStats(promise: Promise) {
         val map = Arguments.createMap()
-        map.putDouble("bytesIn", bytesIn.toDouble())
-        map.putDouble("bytesOut", bytesOut.toDouble())
+        map.putDouble("bytesIn", 0.0)
+        map.putDouble("bytesOut", 0.0)
         promise.resolve(map)
     }
 
-    private fun startVpnService(serverIp: String, ovpnConfig: String, dns: String) {
-        vpnServiceIntent = Intent(reactApplicationContext, BeardVpnService::class.java).apply {
-            action = BeardVpnService.ACTION_CONNECT
-            putExtra("serverIp", serverIp)
-            putExtra("ovpnConfig", ovpnConfig)
-            putExtra("dns", dns)
+    private fun registerReceiver() {
+        if (!receiverRegistered) {
+            val filter = IntentFilter(BeardVpnService.ACTION_VPN_EVENT)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                reactApplicationContext.registerReceiver(eventReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                reactApplicationContext.registerReceiver(eventReceiver, filter)
+            }
+            receiverRegistered = true
         }
-        reactApplicationContext.startService(vpnServiceIntent)
-        currentStatus = "connecting"
-        sendEvent("onVPNStateChanged", "connecting")
     }
 
-    private fun sendEvent(eventName: String, status: String) {
-        val map = Arguments.createMap()
-        map.putString("status", status)
+    private fun sendEvent(eventName: String, params: WritableMap) {
         reactApplicationContext
             .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-            .emit(eventName, map)
+            .emit(eventName, params)
     }
 
-    companion object {
-        const val VPN_REQUEST_CODE = 24601
+    override fun onCatalystInstanceDestroy() {
+        if (receiverRegistered) {
+            try {
+                reactApplicationContext.unregisterReceiver(eventReceiver)
+            } catch (_: Exception) {}
+            receiverRegistered = false
+        }
     }
 }
