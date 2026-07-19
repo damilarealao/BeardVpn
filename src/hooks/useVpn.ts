@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
 import { VPNStatus, VPNConnectionState, VPNServer } from '../types';
 import { vpnService, onVPNStateChanged } from '../services/vpnService';
 import { storageService } from '../services/storageService';
@@ -17,7 +18,38 @@ export function useVpn() {
   const [premiumExpiresAt, setPremiumExpiresAt] = useState<number | null>(null);
   const statsInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  const syncStatus = useCallback(async () => {
+    try {
+      const { status } = await vpnService.getStatus();
+      const s = status as VPNStatus;
+      setConnection((prev) => {
+        if (s === 'disconnected') {
+          if (statsInterval.current) {
+            clearInterval(statsInterval.current);
+            statsInterval.current = null;
+          }
+          if (prev.status === 'disconnected') return prev;
+          return { ...initialState };
+        }
+        if (s === 'connected') {
+          if (prev.status !== 'connected') {
+            return { ...prev, status: s, connectedAt: Date.now() };
+          }
+          return { ...prev, status: s };
+        }
+        return { ...prev, status: s };
+      });
+    } catch {}
+  }, []);
+
   useEffect(() => {
+    vpnService.getStatus().then(({ status }) => {
+      const s = status as VPNStatus;
+      if (s !== 'disconnected') {
+        setConnection((prev) => ({ ...prev, status: s, connectedAt: Date.now() }));
+      }
+    }).catch(() => {});
+
     const unsub = onVPNStateChanged((status: VPNStatus) => {
       setConnection((prev) => {
         if (status === 'disconnected') {
@@ -34,6 +66,12 @@ export function useVpn() {
       });
     });
 
+    const appSub = AppState.addEventListener('change', (nextState: AppStateStatus) => {
+      if (nextState === 'active') {
+        syncStatus();
+      }
+    });
+
     storageService.getPremiumStatus().then(({ unlocked, expiresAt }) => {
       if (unlocked && expiresAt && expiresAt > Date.now()) {
         setPremiumUnlocked(true);
@@ -43,9 +81,10 @@ export function useVpn() {
 
     return () => {
       unsub();
+      appSub.remove();
       if (statsInterval.current) clearInterval(statsInterval.current);
     };
-  }, []);
+  }, [syncStatus]);
 
   const connect = useCallback(
     async (server: VPNServer) => {

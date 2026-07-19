@@ -549,9 +549,9 @@
 <p class="subtitle">Review these screens before I build. Tell me what to change.</p>
 
 <div class="tabs">
-  <button class="tab-btn active" onclick="showScreen('home')">Home</button>
-  <button class="tab-btn" onclick="showScreen('servers')">Servers</button>
-  <button class="tab-btn" onclick="showScreen('settings')">Settings</button>
+  <button class="tab-btn active" onclick="showScreen('home', this)">Home</button>
+  <button class="tab-btn" onclick="showScreen('servers', this)">Servers</button>
+  <button class="tab-btn" onclick="showScreen('settings', this)">Settings</button>
 </div>
 
 <div class="phone">
@@ -952,6 +952,11 @@
     <li><strong>useVpn:</strong> Stats interval no longer leaks on reconnect. DNS from settings is passed to native.</li>
     <li><strong>BeardVpnService:</strong> Detailed logging for every state change.</li>
     <li><strong>formatSpeed:</strong> Returns "—" instead of "0.0 Kbps" when not connected.</li>
+    <li><strong>State sync fix:</strong> <code>useVpn</code> queries <code>getStatus()</code> on mount AND when app comes to foreground (<code>AppState</code> listener). VPNModule receiver registered in <code>init{}</code> not on connect.</li>
+    <li><strong>Disconnect fix:</strong> Disconnect now immediately emits "disconnected" to JS (no more stuck states).</li>
+    <li><strong>Server list fix:</strong> <code>rankServers()</code> no longer filters out servers with ping=0 or speed=0. All servers now shown, sorted by score.</li>
+    <li><strong>Server loading fix:</strong> Cached servers from AsyncStorage shown instantly on launch. Fresh fetch happens in background. Bundled 10-server fallback if all fetching fails.</li>
+    <li><strong>OpenVPN client:</strong> Still uses custom SSLSocket. Traffic is NOT tunneled yet — key icon shows because TUN interface is established, but routing doesn't work. Next step: integrate <code>ics-openvpn</code> or switch to L2TP/IPSec.</li>
   </ul>
 </div>
 
@@ -986,14 +991,14 @@ function testMonetagAd() {
 
   container.appendChild(iframe);
 }
-</div>
+</script>
 
 <script>
-function showScreen(name) {
+function showScreen(name, el) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + name).classList.add('active');
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  event.target.classList.add('active');
+  if (el) el.classList.add('active');
 }
 
 let connected = false;
@@ -1002,7 +1007,6 @@ let adShowing = false;
 function toggleConnect(el) {
   if (adShowing) return;
 
-  // Show ad overlay first
   adShowing = true;
   document.getElementById('ad-overlay').style.display = 'flex';
   startOverlayCountdown(el);
@@ -1022,7 +1026,6 @@ function startOverlayCountdown(connectEl) {
     if (count <= 0) {
       clearInterval(adOverlayInterval);
       el.textContent = '0s';
-      // Auto-close and connect
       setTimeout(() => {
         document.getElementById('ad-overlay').style.display = 'none';
         adShowing = false;
@@ -1045,12 +1048,21 @@ function doConnect(el) {
     icon.style.color = '#4ade80';
     label.style.color = '#4ade80';
     label.textContent = 'CONNECTED';
+    // Update header badge
+    const badge = document.querySelector('#screen-home .status-badge');
+    if (badge) badge.innerHTML = '<div class="status-dot" style="background: #22c55e;"></div><span style="color: #22c55e;">CONNECTED</span>';
+    const sublabel = document.querySelector('#screen-home .shield-label');
+    if (sublabel) { sublabel.textContent = 'PROTECTED'; sublabel.style.color = '#22c55e'; }
   } else {
     ring.style.borderColor = '#2563eb';
     ring.style.background = '#0c1a3d';
     icon.style.color = '#60a5fa';
     label.style.color = '#60a5fa';
     label.textContent = 'CONNECT';
+    const badge = document.querySelector('#screen-home .status-badge');
+    if (badge) badge.innerHTML = '<div class="status-dot" style="background: #64748b;"></div><span style="color: #64748b;">NOT CONNECTED</span>';
+    const sublabel = document.querySelector('#screen-home .shield-label');
+    if (sublabel) { sublabel.textContent = 'NOT CONNECTED'; sublabel.style.color = '#64748b'; }
   }
 }
 </script>

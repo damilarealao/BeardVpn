@@ -30,6 +30,7 @@ class VPNModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMod
 
     init {
         reactApplicationContext.addActivityEventListener(this)
+        registerReceiver()
     }
 
     override fun getName(): String = "VPNModule"
@@ -81,8 +82,6 @@ class VPNModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMod
     override fun onNewIntent(intent: Intent) {}
 
     private fun startVpnService(serverIp: String, ovpnConfig: String, dns: String, promise: Promise) {
-        registerReceiver()
-
         val intent = Intent(reactApplicationContext, BeardVpnService::class.java).apply {
             action = BeardVpnService.ACTION_CONNECT
             putExtra("serverIp", serverIp)
@@ -100,10 +99,10 @@ class VPNModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMod
     @ReactMethod
     fun disconnect(promise: Promise) {
         try {
+            currentStatus = "disconnected"
             sendEvent("onVPNStateChanged", Arguments.createMap().apply {
-                putString("status", "disconnecting")
+                putString("status", "disconnected")
             })
-            currentStatus = "disconnecting"
 
             val intent = Intent(reactApplicationContext, BeardVpnService::class.java).apply {
                 action = BeardVpnService.ACTION_DISCONNECT
