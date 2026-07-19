@@ -78,7 +78,7 @@ class VPNModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMod
         }
     }
 
-    override fun onNewIntent(intent: Intent?) {}
+    override fun onNewIntent(intent: Intent) {}
 
     private fun startVpnService(serverIp: String, ovpnConfig: String, dns: String, promise: Promise) {
         registerReceiver()
