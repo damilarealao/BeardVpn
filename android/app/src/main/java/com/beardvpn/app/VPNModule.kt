@@ -36,6 +36,12 @@ class VPNModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMod
     override fun getName(): String = "VPNModule"
 
     @ReactMethod
+    fun addListener(eventName: String) {}
+
+    @ReactMethod
+    fun removeListeners(count: Int) {}
+
+    @ReactMethod
     fun connect(config: ReadableMap, promise: Promise) {
         try {
             val serverIp = config.getString("serverIp") ?: run {

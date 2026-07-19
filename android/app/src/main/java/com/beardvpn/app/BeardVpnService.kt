@@ -147,6 +147,7 @@ class BeardVpnService : VpnService() {
 
     private fun sendEvent(eventName: String, status: String) {
         val intent = Intent(ACTION_VPN_EVENT).apply {
+            setPackage(packageName)
             putExtra("event", eventName)
             putExtra("status", status)
         }
@@ -155,6 +156,7 @@ class BeardVpnService : VpnService() {
 
     private fun sendErrorEvent(message: String) {
         val intent = Intent(ACTION_VPN_EVENT).apply {
+            setPackage(packageName)
             putExtra("event", "onVPNSError")
             putExtra("status", "error")
             putExtra("message", message)

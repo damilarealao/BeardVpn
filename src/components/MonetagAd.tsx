@@ -105,12 +105,15 @@ export function MonetagAd({ visible, onClose }: MonetagAdProps) {
           </View>
         )}
         <WebView
-          source={{ html: AD_HTML }}
+          source={{ html: AD_HTML, baseUrl: 'https://quge5.com' }}
           style={[styles.webview, { opacity: isLoading ? 0 : 1 }]}
           javaScriptEnabled={true}
           domStorageEnabled={true}
+          mediaPlaybackRequiresUserAction={false}
+          allowsInlineMediaPlayback={true}
           startInLoadingState={false}
           mixedContentMode="always"
+          userAgent="Mozilla/5.0 (Linux; Android 14; Infinix X6525D) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
           onLoadStart={() => {
             setIsLoading(true);
             setLoadError(null);
