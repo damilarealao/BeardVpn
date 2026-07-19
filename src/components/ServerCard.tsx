@@ -23,9 +23,8 @@ export function ServerCard({ server, isSelected, onSelect }: ServerCardProps) {
       style={({ pressed }) => ({
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 16,
+        paddingHorizontal: 12,
         paddingVertical: 14,
-        marginHorizontal: 16,
         marginBottom: 6,
         borderRadius: 14,
         borderWidth: 1,

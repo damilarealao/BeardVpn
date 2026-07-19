@@ -13,6 +13,7 @@ export function ConnectButton({ status, onConnect, onDisconnect }: ConnectButton
   const isConnecting = status === 'connecting' || status === 'disconnecting';
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const glowAnim = useRef(new Animated.Value(0)).current;
+  const spinAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (isConnected) {
@@ -24,8 +25,8 @@ export function ConnectButton({ status, onConnect, onDisconnect }: ConnectButton
       );
       const glow = Animated.loop(
         Animated.sequence([
-          Animated.timing(glowAnim, { toValue: 1, duration: 1800, useNativeDriver: false }),
-          Animated.timing(glowAnim, { toValue: 0, duration: 1800, useNativeDriver: false }),
+          Animated.timing(glowAnim, { toValue: 1, duration: 1800, useNativeDriver: true }),
+          Animated.timing(glowAnim, { toValue: 0, duration: 1800, useNativeDriver: true }),
         ])
       );
       pulse.start();
@@ -36,6 +37,18 @@ export function ConnectButton({ status, onConnect, onDisconnect }: ConnectButton
       glowAnim.setValue(0);
     }
   }, [isConnected]);
+
+  useEffect(() => {
+    if (isConnecting) {
+      const spin = Animated.loop(
+        Animated.timing(spinAnim, { toValue: 1, duration: 1000, useNativeDriver: true })
+      );
+      spin.start();
+      return () => { spin.stop(); spinAnim.setValue(0); };
+    } else {
+      spinAnim.setValue(0);
+    }
+  }, [isConnecting]);
 
   const ringColor = isConnected ? '#22c55e' : isConnecting ? '#eab308' : '#2563eb';
   const bgColor = isConnected ? '#052e16' : isConnecting ? '#1c1917' : '#0c1a3d';
@@ -52,6 +65,11 @@ export function ConnectButton({ status, onConnect, onDisconnect }: ConnectButton
   const glowOpacity = glowAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [0.2, 0.5],
+  });
+
+  const spinRotation = spinAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
   });
 
   return (
@@ -100,14 +118,14 @@ export function ConnectButton({ status, onConnect, onDisconnect }: ConnectButton
         >
           {isConnecting ? (
             <View style={{ alignItems: 'center', gap: 8 }}>
-              {/* Spinning loader */}
-              <View style={{
+              <Animated.View style={{
                 width: 48,
                 height: 48,
                 borderRadius: 24,
                 borderWidth: 4,
                 borderColor: 'rgba(250,204,21,0.2)',
                 borderTopColor: '#facc15',
+                transform: [{ rotate: spinRotation }],
               }} />
               <Text style={{ color: '#facc15', fontWeight: '700', fontSize: 13, letterSpacing: 1 }}>
                 CONNECTING
@@ -115,7 +133,7 @@ export function ConnectButton({ status, onConnect, onDisconnect }: ConnectButton
             </View>
           ) : (
             <>
-              {/* Power icon SVG */}
+              {/* Power icon */}
               <View style={{
                 width: 64,
                 height: 64,

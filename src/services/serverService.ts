@@ -106,6 +106,7 @@ export async function fetchServers(): Promise<VPNServer[]> {
 }
 
 export function formatSpeed(bytesPerSec: number): string {
+  if (bytesPerSec <= 0) return '—';
   const mbps = (bytesPerSec * 8) / (1024 * 1024);
   if (mbps >= 1000) return `${(mbps / 1000).toFixed(1)} Gbps`;
   if (mbps >= 1) return `${mbps.toFixed(1)} Mbps`;
@@ -113,8 +114,7 @@ export function formatSpeed(bytesPerSec: number): string {
 }
 
 export function formatPing(ping: number): string {
-  if (ping < 50) return `${ping}ms`;
-  if (ping < 150) return `${ping}ms`;
+  if (ping <= 0) return '—';
   return `${ping}ms`;
 }
 

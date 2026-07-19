@@ -338,8 +338,8 @@ TS_OUTPUT=$(npx tsc --noEmit 2>&1) || true
 if [ -z "$TS_OUTPUT" ]; then
   pass "TypeScript: zero errors"
 else
-  TS_ERR_COUNT=$(echo "$TS_OUTPUT" | grep -c "error TS" || echo "0")
-  if [ "$TS_ERR_COUNT" -gt 0 ]; then
+  TS_ERR_COUNT=$(echo "$TS_OUTPUT" | grep -c "error TS" || true)
+  if [ "${TS_ERR_COUNT:-0}" -gt 0 ]; then
     fail "TypeScript: $TS_ERR_COUNT error(s)"
     echo "$TS_OUTPUT" | grep "error TS" | head -5
   else
@@ -401,14 +401,24 @@ header "Building Release APK (arch=$ARCH)"
 
 cd "$ANDROID_DIR"
 BUILD_START=$(date +%s)
+BUILD_LOG="$PROJECT_ROOT/build-errors.log"
 
-if ./gradlew assembleRelease \
+# Clear old log
+: > "$BUILD_LOG"
+
+echo -e "  ${DIM}Log: $BUILD_LOG${NC}"
+
+# Run build, tee output to log file for error inspection
+BUILD_OUTPUT=$(./gradlew assembleRelease \
   -PreactNativeArchitectures="$ARCH" \
   --no-daemon \
-  2>&1; then
+  2>&1 | tee "$BUILD_LOG")
+BUILD_EXIT=${PIPESTATUS[0]}
 
-  BUILD_END=$(date +%s)
-  BUILD_TIME=$((BUILD_END - BUILD_START))
+BUILD_END=$(date +%s)
+BUILD_TIME=$((BUILD_END - BUILD_START))
+
+if [ "$BUILD_EXIT" -eq 0 ]; then
   pass "Release build succeeded (${BUILD_TIME}s)"
 
   APK_PATH=$(find "$ANDROID_DIR/app/build/outputs" -name "*.apk" -type f | head -1)
@@ -426,9 +436,16 @@ if ./gradlew assembleRelease \
     fail "No APK found in build outputs"
   fi
 else
-  BUILD_END=$(date +%s)
-  BUILD_TIME=$((BUILD_END - BUILD_START))
-  fail "Release build FAILED (${BUILD_TIME}s)"
+  fail "Release build FAILED (${BUILD_TIME}s) — exit code: $BUILD_EXIT"
+  echo ""
+  echo -e "  ${RED}━━━ BUILD ERRORS ━━━${NC}"
+  # Extract key error lines: FAILURE, > What went wrong, BUILD FAILED, exception lines
+  grep -iE "FAILURE|What went wrong|BUILD FAILED|Exception:|error:|e:" "$BUILD_LOG" \
+    | head -30 \
+    | sed 's/^/  /'
+  echo ""
+  echo -e "  ${DIM}Full log: $BUILD_LOG${NC}"
+  echo -e "  ${DIM}Re-run with: cd android && ./gradlew assembleRelease --no-daemon${NC}"
 fi
 
 # ============================================================================

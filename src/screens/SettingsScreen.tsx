@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Switch, Pressable, ScrollView } from 'react-native';
+import { View, Text, Switch, Pressable, ScrollView, Linking } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface SettingsScreenProps {
@@ -16,6 +16,8 @@ const DNS_OPTIONS = [
 
 export function SettingsScreen({ dns, onDNSSet }: SettingsScreenProps) {
   const insets = useSafeAreaInsets();
+  const [killSwitch, setKillSwitch] = React.useState(true);
+  const [autoConnect, setAutoConnect] = React.useState(false);
 
   return (
     <ScrollView
@@ -68,9 +70,10 @@ export function SettingsScreen({ dns, onDNSSet }: SettingsScreenProps) {
               <Text style={{ color: '#64748b', fontSize: 12, marginTop: 2 }}>Block traffic if VPN drops</Text>
             </View>
             <Switch
-              value={true}
+              value={killSwitch}
+              onValueChange={setKillSwitch}
               trackColor={{ false: '#374151', true: '#1d4ed8' }}
-              thumbColor={true ? '#60a5fa' : '#9ca3af'}
+              thumbColor={killSwitch ? '#60a5fa' : '#9ca3af'}
             />
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14 }}>
@@ -79,9 +82,10 @@ export function SettingsScreen({ dns, onDNSSet }: SettingsScreenProps) {
               <Text style={{ color: '#64748b', fontSize: 12, marginTop: 2 }}>Connect on app launch</Text>
             </View>
             <Switch
-              value={false}
+              value={autoConnect}
+              onValueChange={setAutoConnect}
               trackColor={{ false: '#374151', true: '#1d4ed8' }}
-              thumbColor={false ? '#60a5fa' : '#9ca3af'}
+              thumbColor={autoConnect ? '#60a5fa' : '#9ca3af'}
             />
           </View>
         </View>
@@ -99,6 +103,48 @@ export function SettingsScreen({ dns, onDNSSet }: SettingsScreenProps) {
             (University of Tsukuba, Japan). Servers are community-contributed
             and may be unavailable at times.
           </Text>
+        </View>
+      </View>
+
+      <View style={{ marginBottom: 24 }}>
+        <Text style={{ color: '#64748b', fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>
+          Developer
+        </Text>
+        <View style={{ backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155', borderRadius: 14, overflow: 'hidden' }}>
+          <Pressable
+            onPress={() => Linking.openURL('mailto:damilarealao29@gmail.com')}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingHorizontal: 16,
+              paddingVertical: 14,
+              borderBottomWidth: 1,
+              borderBottomColor: '#334155',
+              gap: 12,
+            }}
+          >
+            <Text style={{ fontSize: 18 }}>{'\u2709'}</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: '#e2e8f0', fontSize: 14 }}>Email</Text>
+              <Text style={{ color: '#60a5fa', fontSize: 12, marginTop: 1 }}>damilarealao29@gmail.com</Text>
+            </View>
+          </Pressable>
+          <Pressable
+            onPress={() => Linking.openURL('https://github.com/damilarealao')}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingHorizontal: 16,
+              paddingVertical: 14,
+              gap: 12,
+            }}
+          >
+            <Text style={{ fontSize: 18 }}>{'\u{1F4BB}'}</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: '#e2e8f0', fontSize: 14 }}>GitHub</Text>
+              <Text style={{ color: '#60a5fa', fontSize: 12, marginTop: 1 }}>github.com/damilarealao</Text>
+            </View>
+          </Pressable>
         </View>
       </View>
 

@@ -17,17 +17,27 @@ class BeardVpnService : VpnService() {
     private var isRunning = false
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.i(TAG, "onStartCommand action=${intent?.action}")
+
+        createNotificationChannel()
+        startForeground(NOTIFICATION_ID, buildNotification("BeardVpn"))
+
         when (intent?.action) {
             ACTION_CONNECT -> {
                 val ovpnConfig = intent.getStringExtra("ovpnConfig") ?: ""
                 val serverIp = intent.getStringExtra("serverIp") ?: ""
                 val dns = intent.getStringExtra("dns") ?: "1.1.1.1"
+                Log.i(TAG, "Connecting to $serverIp dns=$dns configLen=${ovpnConfig.length}")
                 startVpn(serverIp, dns, ovpnConfig)
             }
             ACTION_DISCONNECT -> {
+                Log.i(TAG, "Disconnecting")
                 stopVpn()
             }
-            else -> {}
+            else -> {
+                Log.w(TAG, "Null or unknown action, stopping service")
+                stopSelf()
+            }
         }
         return START_STICKY
     }
@@ -37,6 +47,12 @@ class BeardVpnService : VpnService() {
             val config = if (ovpnConfigStr.isNotEmpty()) {
                 OvpnConfig.parse(ovpnConfigStr)
             } else null
+
+            if (config != null) {
+                Log.i(TAG, "Parsed OVPN: host=${config.serverHost} port=${config.serverPort} proto=${config.protocol}")
+            } else {
+                Log.w(TAG, "No OVPN config or parse failed, using raw TUN")
+            }
 
             val mtu = config?.mtu ?: 1500
             val dnsServer = config?.dnsServers?.firstOrNull() ?: dns
@@ -58,15 +74,16 @@ class BeardVpnService : VpnService() {
 
             vpnInterface = builder.establish()
             if (vpnInterface == null) {
-                Log.e(TAG, "Failed to establish VPN interface")
+                Log.e(TAG, "VPN establish() returned null - permission may not be granted")
                 sendEvent("onVPNStateChanged", "error")
+                sendErrorEvent("VPN permission not granted or interface creation failed")
                 stopSelf()
                 return
             }
 
+            Log.i(TAG, "VPN interface established successfully, fd=${vpnInterface?.fd}")
             isRunning = true
-            createNotificationChannel()
-            startForeground(NOTIFICATION_ID, buildNotification("Connecting to $serverIp..."))
+            updateNotification("Connecting to $serverIp...")
 
             if (config != null) {
                 openVpnClient = OpenVpnClient(
@@ -74,27 +91,32 @@ class BeardVpnService : VpnService() {
                     config = config,
                     tunFd = vpnInterface!!,
                     onConnected = {
-                        startForeground(NOTIFICATION_ID, buildNotification("Connected to $serverIp"))
+                        Log.i(TAG, "OpenVPN TLS handshake complete")
+                        updateNotification("Connected to $serverIp")
                         sendEvent("onVPNStateChanged", "connected")
                     },
                     onDisconnected = {
+                        Log.i(TAG, "OpenVPN disconnected")
                         isRunning = false
                         sendEvent("onVPNStateChanged", "disconnected")
                     },
                     onError = { error ->
                         Log.e(TAG, "OpenVPN error: $error")
                         sendEvent("onVPNStateChanged", "error")
+                        sendErrorEvent(error)
                     }
                 )
                 openVpnClient?.start()
             } else {
-                startForeground(NOTIFICATION_ID, buildNotification("Connected to $serverIp"))
+                Log.i(TAG, "No config, sending connected event (raw TUN mode)")
+                updateNotification("Connected to $serverIp")
                 sendEvent("onVPNStateChanged", "connected")
             }
 
         } catch (e: Exception) {
-            Log.e(TAG, "VPN start failed", e)
+            Log.e(TAG, "VPN start failed: ${e.message}", e)
             sendEvent("onVPNStateChanged", "error")
+            sendErrorEvent("VPN start failed: ${e.message}")
             stopSelf()
         }
     }
@@ -105,7 +127,9 @@ class BeardVpnService : VpnService() {
         openVpnClient = null
         try {
             vpnInterface?.close()
-        } catch (_: Exception) {}
+        } catch (e: Exception) {
+            Log.w(TAG, "Error closing VPN interface: ${e.message}")
+        }
         vpnInterface = null
         sendEvent("onVPNStateChanged", "disconnected")
         stopForeground(STOP_FOREGROUND_REMOVE)
@@ -125,6 +149,15 @@ class BeardVpnService : VpnService() {
         val intent = Intent(ACTION_VPN_EVENT).apply {
             putExtra("event", eventName)
             putExtra("status", status)
+        }
+        sendBroadcast(intent)
+    }
+
+    private fun sendErrorEvent(message: String) {
+        val intent = Intent(ACTION_VPN_EVENT).apply {
+            putExtra("event", "onVPNSError")
+            putExtra("status", "error")
+            putExtra("message", message)
         }
         sendBroadcast(intent)
     }
@@ -170,7 +203,13 @@ class BeardVpnService : VpnService() {
         }
     }
 
+    private fun updateNotification(text: String) {
+        val manager = getSystemService(NotificationManager::class.java)
+        manager.notify(NOTIFICATION_ID, buildNotification(text))
+    }
+
     override fun onDestroy() {
+        Log.i(TAG, "onDestroy")
         stopVpn()
         super.onDestroy()
     }

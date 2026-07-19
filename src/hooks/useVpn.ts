@@ -21,7 +21,14 @@ export function useVpn() {
     const unsub = onVPNStateChanged((status: VPNStatus) => {
       setConnection((prev) => {
         if (status === 'disconnected') {
+          if (statsInterval.current) {
+            clearInterval(statsInterval.current);
+            statsInterval.current = null;
+          }
           return { ...initialState };
+        }
+        if (status === 'connected') {
+          return { ...prev, status, connectedAt: Date.now() };
         }
         return { ...prev, status };
       });
@@ -53,17 +60,17 @@ export function useVpn() {
           connectedServer: server,
         }));
 
+        const dns = await storageService.getDNS();
+
         await vpnService.connect({
           serverIp: server.ip,
           ovpnConfig: server.ovpnConfig,
-          dns: '1.1.1.1',
+          dns,
         });
 
-        setConnection((prev) => ({
-          ...prev,
-          status: 'connected',
-          connectedAt: Date.now(),
-        }));
+        if (statsInterval.current) {
+          clearInterval(statsInterval.current);
+        }
 
         statsInterval.current = setInterval(async () => {
           try {

@@ -218,7 +218,7 @@ export function ServerListScreen({
         <FlatList
           data={filteredServers}
           keyExtractor={(item, i) => item.ip + '-' + i}
-          contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
+          contentContainerStyle={{ paddingBottom: insets.bottom + 20, paddingHorizontal: 16 }}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -228,7 +228,7 @@ export function ServerListScreen({
           }
           ListHeaderComponent={
             filteredServers.length > 0 && !search && !selectedCountry ? (
-              <View style={{ paddingHorizontal: 16, paddingVertical: 8 }}>
+              <View style={{ paddingVertical: 8 }}>
                 <Text style={{ color: '#6b7280', fontSize: 11, fontWeight: '600', letterSpacing: 1 }}>
                   SHOWING {filteredServers.length} SERVERS
                 </Text>

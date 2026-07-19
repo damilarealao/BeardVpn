@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, ActivityIndicator, Text } from 'react-native';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import './global.css';
 import { AppNavigator } from './src/navigation/AppNavigator';
@@ -7,7 +6,6 @@ import { useServers } from './src/hooks/useServers';
 import { useVpn } from './src/hooks/useVpn';
 import { storageService } from './src/services/storageService';
 import { MonetagAd } from './src/components/MonetagAd';
-import { AD_CONFIG } from './src/config/adConfig';
 
 export default function App() {
   const {
@@ -28,6 +26,7 @@ export default function App() {
 
   const [dns, setDns] = useState('1.1.1.1');
   const [showAd, setShowAd] = useState(false);
+  const pendingConnect = useRef(false);
   const lastAdTime = useRef(0);
 
   useEffect(() => {
@@ -39,38 +38,38 @@ export default function App() {
     await storageService.setDNS(newDns);
   };
 
-  const handleConnect = () => {
-    if (selectedServer) {
-      connect(selectedServer);
-    }
-  };
-
   const shouldShowAd = () => {
-    if (!AD_CONFIG.monetag.showAfterConnect) return false;
     const now = Date.now();
     const elapsed = (now - lastAdTime.current) / 1000;
-    if (elapsed < AD_CONFIG.monetag.cooldownSeconds) return false;
+    if (elapsed < 60) return false;
     lastAdTime.current = now;
     return true;
   };
 
+  const handleConnect = () => {
+    if (!selectedServer) return;
+
+    if (shouldShowAd()) {
+      pendingConnect.current = true;
+      setShowAd(true);
+    } else {
+      connect(selectedServer);
+    }
+  };
+
+  const handleAdClose = useCallback(() => {
+    setShowAd(false);
+    if (pendingConnect.current && selectedServer) {
+      pendingConnect.current = false;
+      connect(selectedServer);
+    }
+  }, [selectedServer, connect]);
+
   useEffect(() => {
-    if (connection.status === 'connected' && shouldShowAd()) {
-      const timer = setTimeout(() => setShowAd(true), 1500);
-      return () => clearTimeout(timer);
+    if (connection.status === 'connected') {
+      pendingConnect.current = false;
     }
   }, [connection.status]);
-
-  if (isLoading) {
-    return (
-      <SafeAreaProvider>
-        <View style={{ flex: 1, backgroundColor: '#0a0f1e', alignItems: 'center', justifyContent: 'center' }}>
-          <ActivityIndicator size="large" color="#3b82f6" />
-          <Text style={{ color: '#94a3b8', marginTop: 16, fontSize: 15 }}>Loading servers...</Text>
-        </View>
-      </SafeAreaProvider>
-    );
-  }
 
   return (
     <SafeAreaProvider>
@@ -87,7 +86,7 @@ export default function App() {
         dns={dns}
         onDNSSet={handleDNSSet}
       />
-      <MonetagAd visible={showAd} onClose={() => setShowAd(false)} />
+      <MonetagAd visible={showAd} onClose={handleAdClose} />
     </SafeAreaProvider>
   );
 }

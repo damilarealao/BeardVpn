@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Modal, View, TouchableOpacity, Text, StyleSheet, Platform } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { Modal, View, Text, StyleSheet, Platform, ActivityIndicator } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { AD_CONFIG } from '../config/adConfig';
 
@@ -49,26 +49,37 @@ const AD_HTML = `<!DOCTYPE html>
 const CLOSE_DELAY_SECONDS = 5;
 
 export function MonetagAd({ visible, onClose }: MonetagAdProps) {
-  const [canClose, setCanClose] = useState(false);
   const [countdown, setCountdown] = useState(CLOSE_DELAY_SECONDS);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   useEffect(() => {
     if (visible) {
-      setCanClose(false);
       setCountdown(CLOSE_DELAY_SECONDS);
+      setIsLoading(true);
+      setLoadError(null);
+
+      const timeout = setTimeout(() => {
+        setIsLoading(false);
+      }, 8000);
 
       const interval = setInterval(() => {
         setCountdown(prev => {
           if (prev <= 1) {
             clearInterval(interval);
-            setCanClose(true);
+            setTimeout(() => onCloseRef.current(), 200);
             return 0;
           }
           return prev - 1;
         });
       }, 1000);
 
-      return () => clearInterval(interval);
+      return () => {
+        clearTimeout(timeout);
+        clearInterval(interval);
+      };
     }
   }, [visible]);
 
@@ -79,30 +90,46 @@ export function MonetagAd({ visible, onClose }: MonetagAdProps) {
       visible={visible}
       animationType="fade"
       transparent={false}
-      onRequestClose={() => canClose && onClose()}
     >
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.adLabel}>Advertisement</Text>
-          {canClose ? (
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <Text style={styles.closeBtnText}>✕ Close</Text>
-            </TouchableOpacity>
-          ) : (
-            <View style={styles.countdownBadge}>
-              <Text style={styles.countdownText}>{countdown}s</Text>
-            </View>
-          )}
+          <View style={styles.countdownBadge}>
+            <Text style={styles.countdownText}>{countdown}s</Text>
+          </View>
         </View>
+        {isLoading && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#3b82f6" />
+            <Text style={styles.loadingText}>Loading ad...</Text>
+          </View>
+        )}
         <WebView
           source={{ html: AD_HTML }}
-          style={styles.webview}
+          style={[styles.webview, { opacity: isLoading ? 0 : 1 }]}
           javaScriptEnabled={true}
           domStorageEnabled={true}
-          startInLoadingState={true}
+          startInLoadingState={false}
           mixedContentMode="always"
+          onLoadStart={() => {
+            setIsLoading(true);
+            setLoadError(null);
+          }}
+          onLoadEnd={() => {
+            setIsLoading(false);
+          }}
+          onError={(event) => {
+            setLoadError('Ad failed to load');
+            setIsLoading(false);
+            console.warn('MonetagAd load error:', event.nativeEvent.description);
+          }}
           onShouldStartLoadWithRequest={() => true}
         />
+        {loadError && (
+          <View style={styles.errorOverlay}>
+            <Text style={styles.errorText}>{loadError}</Text>
+          </View>
+        )}
       </View>
     </Modal>
   );
@@ -126,17 +153,6 @@ const styles = StyleSheet.create({
     color: '#64748b',
     fontSize: 12,
   },
-  closeBtn: {
-    backgroundColor: '#3b82f6',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  closeBtnText: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
   countdownBadge: {
     backgroundColor: '#334155',
     paddingHorizontal: 12,
@@ -148,8 +164,38 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
   },
+  loadingContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#0f172a',
+    zIndex: 1,
+  },
+  loadingText: {
+    color: '#94a3b8',
+    marginTop: 12,
+    fontSize: 14,
+  },
   webview: {
     flex: 1,
     backgroundColor: '#0f172a',
+  },
+  errorOverlay: {
+    position: 'absolute',
+    bottom: 20,
+    left: 16,
+    right: 16,
+    backgroundColor: 'rgba(127,29,29,0.9)',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  errorText: {
+    color: '#fca5a5',
+    fontSize: 13,
   },
 });

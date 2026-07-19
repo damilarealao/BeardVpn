@@ -92,6 +92,7 @@ export function AppNavigator({
               onConnect={onConnect}
               onDisconnect={onDisconnect}
               onServerListPress={() => navigation.navigate('Servers' as never)}
+              isLoading={isLoading}
             />
           )}
         </Tab.Screen>
