@@ -3,6 +3,8 @@ import { View, Text, ScrollView, Pressable, Image, ActivityIndicator } from 'rea
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ConnectButton } from '../components/ConnectButton';
+import { ServerCard } from '../components/ServerCard';
+import { AdBanner } from '../components/AdBanner';
 import { COUNTRY_FLAGS } from '../config/constants';
 import { VPNConnectionState, VPNServer } from '../types';
 import { formatSpeed } from '../services/serverService';
@@ -15,6 +17,7 @@ interface HomeScreenProps {
   onConnect: () => void;
   onDisconnect: () => void;
   onServerListPress: () => void;
+  onSelectServer: (server: VPNServer) => void;
   isLoading: boolean;
 }
 
@@ -25,6 +28,7 @@ export function HomeScreen({
   onConnect,
   onDisconnect,
   onServerListPress,
+  onSelectServer,
   isLoading,
 }: HomeScreenProps) {
   const insets = useSafeAreaInsets();
@@ -34,11 +38,6 @@ export function HomeScreen({
 
   const statusColor = isConnected ? '#4ade80' : isConnecting ? '#facc15' : isError ? '#f87171' : '#64748b';
   const statusLabel = isConnected ? 'PROTECTED' : isConnecting ? 'CONNECTING...' : isError ? 'FAILED' : 'NOT CONNECTED';
-
-  const flag = selectedServer ? COUNTRY_FLAGS[selectedServer.countryShort] || '\u{1F310}' : '\u{1F310}';
-  const countryName = selectedServer
-    ? (selectedServer.countryLong || selectedServer.countryShort || 'Unknown')
-    : 'No server selected';
 
   const totalCount = servers.length;
 
@@ -136,69 +135,56 @@ export function HomeScreen({
           </View>
         )}
 
-        <Pressable
-          onPress={onServerListPress}
-          style={({ pressed }) => ({
-            marginHorizontal: 20,
-            marginBottom: 16,
-            backgroundColor: '#111827',
-            borderWidth: 1,
-            borderColor: '#1f2937',
-            borderRadius: 16,
-            padding: 16,
-            flexDirection: 'row',
-            alignItems: 'center',
-            opacity: pressed ? 0.8 : 1,
-          })}
-        >
-          <View style={{
-            width: 48,
-            height: 48,
-            borderRadius: 12,
-            backgroundColor: '#1e293b',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginRight: 14,
-          }}>
-            <Text style={{ fontSize: 26 }}>{flag}</Text>
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={{ color: '#f9fafb', fontSize: 15, fontWeight: '700' }}>
-              {countryName}
-            </Text>
-            <Text style={{ color: '#6b7280', fontSize: 12, marginTop: 2 }}>
-              {selectedServer
-                ? `${selectedServer.ip}:${selectedServer.hostName}`
-                : 'Tap to choose a server'}
-            </Text>
-          </View>
-          <View style={{ alignItems: 'flex-end', marginRight: 8 }}>
-            {selectedServer && (
-              <>
-                <Text style={{ color: '#60a5fa', fontSize: 12, fontWeight: '600', fontFamily: 'monospace' }}>
-                  {formatSpeed(selectedServer.speed)}
+        {selectedServer && (
+          <View style={{ marginHorizontal: 16, marginBottom: 12 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, paddingHorizontal: 4 }}>
+              <Text style={{ color: '#94a3b8', fontSize: 12, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' }}>
+                Current Server
+              </Text>
+              <Pressable onPress={onServerListPress}>
+                <Text style={{ color: '#60a5fa', fontSize: 12, fontWeight: '600' }}>
+                  Change
                 </Text>
-                <Text style={{ color: '#6b7280', fontSize: 11, fontFamily: 'monospace', marginTop: 2 }}>
-                  {selectedServer.ping > 0 ? `${selectedServer.ping}ms` : '\u2014'}
-                </Text>
-              </>
-            )}
+              </Pressable>
+            </View>
+            <ServerCard
+              server={selectedServer}
+              isSelected={true}
+              onSelect={() => onServerListPress()}
+            />
           </View>
-          <View style={{
-            width: 28,
-            height: 28,
-            borderRadius: 14,
-            backgroundColor: '#1e293b',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-            <Text style={{ color: '#60a5fa', fontSize: 16 }}>{'\u203A'}</Text>
-          </View>
-        </Pressable>
+        )}
+
+        {!selectedServer && (
+          <Pressable
+            onPress={onServerListPress}
+            style={({ pressed }) => ({
+              marginHorizontal: 16,
+              marginBottom: 12,
+              backgroundColor: '#1e293b',
+              borderWidth: 1,
+              borderStyle: 'dashed',
+              borderColor: '#334155',
+              borderRadius: 14,
+              paddingVertical: 20,
+              paddingHorizontal: 16,
+              alignItems: 'center',
+              opacity: pressed ? 0.7 : 1,
+            })}
+          >
+            <Text style={{ fontSize: 32, marginBottom: 8 }}>{'\u{1F310}'}</Text>
+            <Text style={{ color: '#f1f5f9', fontSize: 15, fontWeight: '600' }}>
+              Select a Server
+            </Text>
+            <Text style={{ color: '#64748b', fontSize: 12, marginTop: 4 }}>
+              {totalCount > 0 ? `${totalCount} servers available` : 'Tap to browse servers'}
+            </Text>
+          </Pressable>
+        )}
 
         {servers.length > 0 && (
-          <View style={{ marginHorizontal: 20, marginBottom: 12 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+          <View style={{ marginHorizontal: 16, marginBottom: 12 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, paddingHorizontal: 4 }}>
               <Text style={{ color: '#94a3b8', fontSize: 12, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' }}>
                 Top Servers
               </Text>
@@ -208,56 +194,20 @@ export function HomeScreen({
                 </Text>
               </Pressable>
             </View>
-            {servers.slice(0, 4).map((server, i) => {
-              const sf = COUNTRY_FLAGS[server.countryShort] || '\u{1F310}';
-              const isSelected = selectedServer?.ip === server.ip;
-              return (
-                <Pressable
-                  key={server.ip + i}
-                  onPress={onServerListPress}
-                  style={({ pressed }) => ({
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    backgroundColor: isSelected ? 'rgba(37,99,235,0.12)' : '#111827',
-                    borderWidth: 1,
-                    borderColor: isSelected ? '#3b82f6' : '#1f2937',
-                    borderRadius: 12,
-                    padding: 12,
-                    marginBottom: 6,
-                    opacity: pressed ? 0.8 : 1,
-                  })}
-                >
-                  <Text style={{ fontSize: 20, marginRight: 10 }}>{sf}</Text>
-                  <View style={{ flex: 1 }}>
-                    <Text style={{ color: '#e5e7eb', fontSize: 13, fontWeight: '600' }}>
-                      {server.countryLong || server.countryShort}
-                    </Text>
-                    <Text style={{ color: '#6b7280', fontSize: 11, marginTop: 1 }}>
-                      {server.operator || server.hostName}
-                    </Text>
-                  </View>
-                  <View style={{ alignItems: 'flex-end' }}>
-                    <Text style={{ color: server.speed > 10000000 ? '#4ade80' : '#94a3b8', fontSize: 11, fontWeight: '600', fontFamily: 'monospace' }}>
-                      {formatSpeed(server.speed)}
-                    </Text>
-                    <Text style={{ color: '#6b7280', fontSize: 10, fontFamily: 'monospace', marginTop: 1 }}>
-                      {server.ping > 0 ? `${server.ping}ms` : '\u2014'}
-                    </Text>
-                  </View>
-                  {server.isFree && (
-                    <View style={{ marginLeft: 8, backgroundColor: 'rgba(74,222,128,0.12)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 }}>
-                      <Text style={{ color: '#4ade80', fontSize: 9, fontWeight: '700' }}>FREE</Text>
-                    </View>
-                  )}
-                </Pressable>
-              );
-            })}
+            {servers.slice(0, 4).map((server) => (
+              <ServerCard
+                key={server.ip}
+                server={server}
+                isSelected={selectedServer?.ip === server.ip}
+                onSelect={() => onSelectServer(server)}
+              />
+            ))}
           </View>
         )}
 
         {isError && (
           <View style={{
-            marginHorizontal: 20,
+            marginHorizontal: 16,
             backgroundColor: 'rgba(127,29,29,0.2)',
             borderWidth: 1,
             borderColor: 'rgba(185,28,28,0.4)',
@@ -276,6 +226,10 @@ export function HomeScreen({
             <Text style={{ color: '#64748b', fontSize: 12, marginTop: 8 }}>Loading servers...</Text>
           </View>
         )}
+
+        <View style={{ marginTop: 12 }}>
+          <AdBanner size="BANNER" />
+        </View>
       </ScrollView>
     </View>
   );

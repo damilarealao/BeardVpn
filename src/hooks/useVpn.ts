@@ -17,6 +17,14 @@ export function useVpn() {
   const [premiumUnlocked, setPremiumUnlocked] = useState(false);
   const [premiumExpiresAt, setPremiumExpiresAt] = useState<number | null>(null);
   const statsInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+  const connectedServerRef = useRef<VPNServer | null>(null);
+
+  const clearStatsInterval = useCallback(() => {
+    if (statsInterval.current) {
+      clearInterval(statsInterval.current);
+      statsInterval.current = null;
+    }
+  }, []);
 
   const syncStatus = useCallback(async () => {
     try {
@@ -24,43 +32,54 @@ export function useVpn() {
       const s = status as VPNStatus;
       setConnection((prev) => {
         if (s === 'disconnected') {
-          if (statsInterval.current) {
-            clearInterval(statsInterval.current);
-            statsInterval.current = null;
-          }
+          clearStatsInterval();
           if (prev.status === 'disconnected') return prev;
+          connectedServerRef.current = null;
           return { ...initialState };
         }
         if (s === 'connected') {
           if (prev.status !== 'connected') {
-            return { ...prev, status: s, connectedAt: Date.now() };
+            return {
+              ...prev,
+              status: s,
+              connectedAt: Date.now(),
+              connectedServer: connectedServerRef.current,
+            };
           }
           return { ...prev, status: s };
         }
         return { ...prev, status: s };
       });
     } catch {}
-  }, []);
+  }, [clearStatsInterval]);
 
   useEffect(() => {
     vpnService.getStatus().then(({ status }) => {
       const s = status as VPNStatus;
       if (s !== 'disconnected') {
-        setConnection((prev) => ({ ...prev, status: s, connectedAt: Date.now() }));
+        setConnection((prev) => ({
+          ...prev,
+          status: s,
+          connectedAt: Date.now(),
+          connectedServer: connectedServerRef.current,
+        }));
       }
     }).catch(() => {});
 
     const unsub = onVPNStateChanged((status: VPNStatus) => {
       setConnection((prev) => {
         if (status === 'disconnected') {
-          if (statsInterval.current) {
-            clearInterval(statsInterval.current);
-            statsInterval.current = null;
-          }
+          clearStatsInterval();
+          connectedServerRef.current = null;
           return { ...initialState };
         }
         if (status === 'connected') {
-          return { ...prev, status, connectedAt: Date.now() };
+          return {
+            ...prev,
+            status,
+            connectedAt: Date.now(),
+            connectedServer: connectedServerRef.current,
+          };
         }
         return { ...prev, status };
       });
@@ -82,9 +101,9 @@ export function useVpn() {
     return () => {
       unsub();
       appSub.remove();
-      if (statsInterval.current) clearInterval(statsInterval.current);
+      clearStatsInterval();
     };
-  }, [syncStatus]);
+  }, [syncStatus, clearStatsInterval]);
 
   const connect = useCallback(
     async (server: VPNServer) => {
@@ -93,6 +112,7 @@ export function useVpn() {
       }
 
       try {
+        connectedServerRef.current = server;
         setConnection((prev) => ({
           ...prev,
           status: 'connecting',
@@ -107,10 +127,7 @@ export function useVpn() {
           dns,
         });
 
-        if (statsInterval.current) {
-          clearInterval(statsInterval.current);
-        }
-
+        clearStatsInterval();
         statsInterval.current = setInterval(async () => {
           try {
             const stats = await vpnService.getStats();
@@ -124,6 +141,8 @@ export function useVpn() {
 
         return true;
       } catch (error) {
+        connectedServerRef.current = null;
+        clearStatsInterval();
         setConnection((prev) => ({
           ...prev,
           status: 'error',
@@ -133,22 +152,25 @@ export function useVpn() {
         return false;
       }
     },
-    [premiumUnlocked]
+    [premiumUnlocked, clearStatsInterval]
   );
 
   const disconnect = useCallback(async () => {
+    clearStatsInterval();
+    setConnection((prev) => ({
+      ...prev,
+      status: 'disconnecting',
+      bytesIn: 0,
+      bytesOut: 0,
+    }));
+
     try {
-      setConnection((prev) => ({ ...prev, status: 'disconnecting' }));
-      if (statsInterval.current) {
-        clearInterval(statsInterval.current);
-        statsInterval.current = null;
-      }
       await vpnService.disconnect();
-      setConnection({ ...initialState });
-    } catch {
-      setConnection((prev) => ({ ...prev, status: 'error' }));
-    }
-  }, []);
+    } catch {}
+
+    connectedServerRef.current = null;
+    setConnection({ ...initialState });
+  }, [clearStatsInterval]);
 
   const unlockPremium = useCallback(async (durationMs: number) => {
     const expiresAt = Date.now() + durationMs;

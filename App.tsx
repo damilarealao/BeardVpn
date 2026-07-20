@@ -5,7 +5,8 @@ import { AppNavigator } from './src/navigation/AppNavigator';
 import { useServers } from './src/hooks/useServers';
 import { useVpn } from './src/hooks/useVpn';
 import { storageService } from './src/services/storageService';
-import { MonetagAd } from './src/components/MonetagAd';
+import { RewardedAdFlow } from './src/components/RewardedAdFlow';
+import { initializeAds } from './src/services/adService';
 
 export default function App() {
   const {
@@ -31,6 +32,7 @@ export default function App() {
 
   useEffect(() => {
     storageService.getDNS().then(setDns);
+    initializeAds().catch(() => {});
   }, []);
 
   const handleDNSSet = async (newDns: string) => {
@@ -39,10 +41,10 @@ export default function App() {
   };
 
   const shouldShowAd = () => {
+    if (premiumUnlocked) return false;
     const now = Date.now();
     const elapsed = (now - lastAdTime.current) / 1000;
     if (elapsed < 60) return false;
-    lastAdTime.current = now;
     return true;
   };
 
@@ -59,11 +61,13 @@ export default function App() {
 
   const handleAdClose = useCallback(() => {
     setShowAd(false);
+    lastAdTime.current = Date.now();
     if (pendingConnect.current && selectedServer) {
       pendingConnect.current = false;
       connect(selectedServer);
+      unlockPremium(30 * 60 * 1000);
     }
-  }, [selectedServer, connect]);
+  }, [selectedServer, connect, unlockPremium]);
 
   useEffect(() => {
     if (connection.status === 'connected') {
@@ -86,7 +90,7 @@ export default function App() {
         dns={dns}
         onDNSSet={handleDNSSet}
       />
-      <MonetagAd visible={showAd} onClose={handleAdClose} />
+      <RewardedAdFlow visible={showAd} onClose={handleAdClose} />
     </SafeAreaProvider>
   );
 }

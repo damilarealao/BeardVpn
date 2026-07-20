@@ -14,19 +14,21 @@ export function ConnectButton({ status, onConnect, onDisconnect }: ConnectButton
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const glowAnim = useRef(new Animated.Value(0)).current;
   const spinAnim = useRef(new Animated.Value(0)).current;
+  const idleGlowAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (isConnected) {
+      idleGlowAnim.setValue(0);
       const pulse = Animated.loop(
         Animated.sequence([
-          Animated.timing(pulseAnim, { toValue: 1.06, duration: 1800, useNativeDriver: true }),
-          Animated.timing(pulseAnim, { toValue: 1, duration: 1800, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 1.08, duration: 1500, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 1, duration: 1500, useNativeDriver: true }),
         ])
       );
       const glow = Animated.loop(
         Animated.sequence([
-          Animated.timing(glowAnim, { toValue: 1, duration: 1800, useNativeDriver: true }),
-          Animated.timing(glowAnim, { toValue: 0, duration: 1800, useNativeDriver: true }),
+          Animated.timing(glowAnim, { toValue: 1, duration: 1500, useNativeDriver: true }),
+          Animated.timing(glowAnim, { toValue: 0, duration: 1500, useNativeDriver: true }),
         ])
       );
       pulse.start();
@@ -39,9 +41,24 @@ export function ConnectButton({ status, onConnect, onDisconnect }: ConnectButton
   }, [isConnected]);
 
   useEffect(() => {
+    if (!isConnected && !isConnecting) {
+      const idle = Animated.loop(
+        Animated.sequence([
+          Animated.timing(idleGlowAnim, { toValue: 1, duration: 2500, useNativeDriver: true }),
+          Animated.timing(idleGlowAnim, { toValue: 0, duration: 2500, useNativeDriver: true }),
+        ])
+      );
+      idle.start();
+      return () => idle.stop();
+    } else {
+      idleGlowAnim.setValue(0);
+    }
+  }, [isConnected, isConnecting]);
+
+  useEffect(() => {
     if (isConnecting) {
       const spin = Animated.loop(
-        Animated.timing(spinAnim, { toValue: 1, duration: 1000, useNativeDriver: true })
+        Animated.timing(spinAnim, { toValue: 1, duration: 1200, useNativeDriver: true })
       );
       spin.start();
       return () => { spin.stop(); spinAnim.setValue(0); };
@@ -49,10 +66,6 @@ export function ConnectButton({ status, onConnect, onDisconnect }: ConnectButton
       spinAnim.setValue(0);
     }
   }, [isConnecting]);
-
-  const ringColor = isConnected ? '#22c55e' : isConnecting ? '#eab308' : '#2563eb';
-  const bgColor = isConnected ? '#052e16' : isConnecting ? '#1c1917' : '#0c1a3d';
-  const iconColor = isConnected ? '#4ade80' : isConnecting ? '#facc15' : '#60a5fa';
 
   const handlePress = () => {
     if (isConnected) {
@@ -64,117 +77,229 @@ export function ConnectButton({ status, onConnect, onDisconnect }: ConnectButton
 
   const glowOpacity = glowAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0.2, 0.5],
+    outputRange: [0.15, 0.45],
   });
+
+  const idleGlowOpacity = idleGlowAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 0.15],
+  });
+
+  const activeGlowOpacity = isConnected ? glowOpacity : idleGlowOpacity;
 
   const spinRotation = spinAnim.interpolate({
     inputRange: [0, 1],
     outputRange: ['0deg', '360deg'],
   });
 
-  return (
-    <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-      {/* Outer glow ring */}
-      <Animated.View style={{
-        position: 'absolute',
-        width: 210,
-        height: 210,
-        borderRadius: 105,
-        backgroundColor: ringColor,
-        opacity: glowOpacity,
-        transform: [{ scale: pulseAnim }],
-      }} />
+  const OUTER = 200;
+  const RING = 10;
+  const INNER = OUTER - RING * 2;
+  const POWER_BG = 64;
+  const POWER_R = POWER_BG / 2;
 
-      {/* Outer ring border */}
-      <Animated.View style={{
-        width: 200,
-        height: 200,
-        borderRadius: 100,
-        borderWidth: 3,
-        borderColor: ringColor,
-        transform: [{ scale: pulseAnim }],
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: bgColor,
-        shadowColor: ringColor,
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.5,
-        shadowRadius: 20,
-        elevation: 16,
-      }}>
-        {/* Inner circle */}
-        <Pressable
-          onPress={handlePress}
-          disabled={isConnecting}
-          style={({ pressed }) => ({
-            width: 160,
-            height: 160,
-            borderRadius: 80,
+  if (isConnecting) {
+    return (
+      <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{
+          width: OUTER,
+          height: OUTER,
+          borderRadius: OUTER / 2,
+          borderWidth: 3,
+          borderColor: '#b45309',
+          backgroundColor: '#1c1917',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <View style={{
+            width: INNER,
+            height: INNER,
+            borderRadius: INNER / 2,
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: 'rgba(255,255,255,0.05)',
-            opacity: pressed ? 0.8 : 1,
-          })}
-        >
-          {isConnecting ? (
-            <View style={{ alignItems: 'center', gap: 8 }}>
-              <Animated.View style={{
-                width: 48,
-                height: 48,
-                borderRadius: 24,
-                borderWidth: 4,
-                borderColor: 'rgba(250,204,21,0.2)',
-                borderTopColor: '#facc15',
-                transform: [{ rotate: spinRotation }],
-              }} />
-              <Text style={{ color: '#facc15', fontWeight: '700', fontSize: 13, letterSpacing: 1 }}>
-                CONNECTING
-              </Text>
-            </View>
-          ) : (
-            <>
-              {/* Power icon */}
-              <View style={{
-                width: 64,
-                height: 64,
-                borderRadius: 32,
-                backgroundColor: isConnected ? 'rgba(74,222,128,0.15)' : 'rgba(96,165,250,0.1)',
+          }}>
+            <Animated.View style={{
+              width: 48,
+              height: 48,
+              borderRadius: 24,
+              borderWidth: 4,
+              borderColor: 'rgba(250,204,21,0.2)',
+              borderTopColor: '#facc15',
+              borderRightColor: '#facc15',
+              transform: [{ rotate: spinRotation }],
+              marginBottom: 10,
+            }} />
+            <Text style={{
+              color: '#facc15',
+              fontWeight: '800',
+              fontSize: 13,
+              letterSpacing: 2,
+            }}>
+              {status === 'connecting' ? 'CONNECTING' : 'DISCONNECTING'}
+            </Text>
+          </View>
+        </View>
+      </View>
+    );
+  }
+
+  if (isConnected) {
+    return (
+      <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+        <Animated.View style={{
+          position: 'absolute',
+          width: OUTER + 20,
+          height: OUTER + 20,
+          borderRadius: (OUTER + 20) / 2,
+          backgroundColor: '#22c55e',
+          opacity: activeGlowOpacity,
+          transform: [{ scale: pulseAnim }],
+        }} />
+        <Animated.View style={{
+          width: OUTER,
+          height: OUTER,
+          borderRadius: OUTER / 2,
+          borderWidth: 3,
+          borderColor: '#22c55e',
+          backgroundColor: '#052e16',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transform: [{ scale: pulseAnim }],
+          shadowColor: '#22c55e',
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 0.6,
+          shadowRadius: 24,
+          elevation: 20,
+        }}>
+          <View style={{
+            width: INNER,
+            height: INNER,
+            borderRadius: INNER / 2,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <Pressable
+              onPress={handlePress}
+              style={({ pressed }) => ({
+                width: POWER_BG,
+                height: POWER_BG,
+                borderRadius: POWER_R,
+                backgroundColor: 'rgba(74,222,128,0.15)',
                 alignItems: 'center',
                 justifyContent: 'center',
-              }}>
-                <View style={{ marginTop: -2 }}>
+                opacity: pressed ? 0.7 : 1,
+              })}
+            >
+              <View style={{ marginTop: -2 }}>
+                <View style={{
+                  width: 36,
+                  height: 36,
+                  borderWidth: 3.5,
+                  borderColor: '#4ade80',
+                  borderRadius: 18,
+                  borderBottomColor: 'transparent',
+                  alignItems: 'center',
+                }}>
                   <View style={{
-                    width: 36,
-                    height: 36,
-                    borderWidth: 3.5,
-                    borderColor: iconColor,
-                    borderRadius: 18,
-                    borderBottomColor: 'transparent',
-                    alignItems: 'center',
-                  }}>
-                    <View style={{
-                      width: 3.5,
-                      height: 16,
-                      backgroundColor: iconColor,
-                      borderRadius: 2,
-                      marginTop: -1,
-                    }} />
-                  </View>
+                    width: 3.5,
+                    height: 16,
+                    backgroundColor: '#4ade80',
+                    borderRadius: 2,
+                    marginTop: -1,
+                  }} />
                 </View>
               </View>
-              <Text style={{
-                color: iconColor,
-                fontWeight: '800',
-                fontSize: 14,
-                marginTop: 10,
-                letterSpacing: 1.5,
+            </Pressable>
+            <Text style={{
+              color: '#4ade80',
+              fontWeight: '800',
+              fontSize: 14,
+              marginTop: 10,
+              letterSpacing: 2,
+            }}>
+              CONNECTED
+            </Text>
+          </View>
+        </Animated.View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+      <Animated.View style={{
+        position: 'absolute',
+        width: OUTER + 20,
+        height: OUTER + 20,
+        borderRadius: (OUTER + 20) / 2,
+        backgroundColor: '#2563eb',
+        opacity: activeGlowOpacity,
+      }} />
+      <View style={{
+        width: OUTER,
+        height: OUTER,
+        borderRadius: OUTER / 2,
+        borderWidth: 3,
+        borderColor: '#3b82f6',
+        backgroundColor: '#0c1a3d',
+        alignItems: 'center',
+        justifyContent: 'center',
+        shadowColor: '#3b82f6',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.3,
+        shadowRadius: 16,
+        elevation: 12,
+      }}>
+        <View style={{
+          width: INNER,
+          height: INNER,
+          borderRadius: INNER / 2,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <Pressable
+            onPress={handlePress}
+            style={({ pressed }) => ({
+              width: POWER_BG,
+              height: POWER_BG,
+              borderRadius: POWER_R,
+              backgroundColor: 'rgba(96,165,250,0.1)',
+              alignItems: 'center',
+              justifyContent: 'center',
+              opacity: pressed ? 0.7 : 1,
+            })}
+          >
+            <View style={{ marginTop: -2 }}>
+              <View style={{
+                width: 36,
+                height: 36,
+                borderWidth: 3.5,
+                borderColor: '#60a5fa',
+                borderRadius: 18,
+                borderBottomColor: 'transparent',
+                alignItems: 'center',
               }}>
-                {isConnected ? 'CONNECTED' : 'CONNECT'}
-              </Text>
-            </>
-          )}
-        </Pressable>
-      </Animated.View>
+                <View style={{
+                  width: 3.5,
+                  height: 16,
+                  backgroundColor: '#60a5fa',
+                  borderRadius: 2,
+                  marginTop: -1,
+                }} />
+              </View>
+            </View>
+          </Pressable>
+          <Text style={{
+            color: '#60a5fa',
+            fontWeight: '800',
+            fontSize: 14,
+            marginTop: 10,
+            letterSpacing: 2,
+          }}>
+            CONNECT
+          </Text>
+        </View>
+      </View>
     </View>
   );
 }

@@ -194,8 +194,8 @@ header "T6: Source Files"
 for f in \
   App.tsx index.ts package.json app.json tsconfig.json babel.config.js metro.config.js \
   src/screens/HomeScreen.tsx src/screens/ServerListScreen.tsx src/screens/SettingsScreen.tsx \
-  src/components/ConnectButton.tsx src/components/ServerCard.tsx src/components/MonetagAd.tsx \
-  src/services/vpnService.ts src/services/serverService.ts src/services/storageService.ts \
+  src/components/ConnectButton.tsx src/components/ServerCard.tsx src/components/RewardedAdFlow.tsx src/components/AdBanner.tsx \
+  src/services/vpnService.ts src/services/serverService.ts src/services/storageService.ts src/services/adService.ts \
   src/hooks/useVpn.ts src/hooks/useServers.ts \
   src/config/adConfig.ts src/config/constants.ts \
   src/types/index.ts src/navigation/AppNavigator.tsx; do
@@ -256,7 +256,14 @@ for method in connect disconnect getStatus getStats; do
 done
 
 check_content "$JAVA_SRC/VPNModule.kt" "onVPNStateChanged" "VPNModule: emits onVPNStateChanged"
+check_content "$JAVA_SRC/VPNModule.kt" "addListener" "VPNModule: has addListener stub (NativeEventEmitter fix)"
+check_content "$JAVA_SRC/VPNModule.kt" "removeListeners" "VPNModule: has removeListeners stub (NativeEventEmitter fix)"
+check_content "$JAVA_SRC/VPNModule.kt" "bindService" "VPNModule: binds to BeardVpnService (getStats fix)"
+check_content "$JAVA_SRC/OpenVpnClient.kt" "stopped" "OpenVpnClient: has stopped guard (double-stop fix)"
+check_content "$JAVA_SRC/OpenVpnClient.kt" "P_ACK_V1" "OpenVpnClient: has P_ACK_V1 constant"
+check_content "$JAVA_SRC/OpenVpnClient.kt" "P_CONTROL_HARD_RESET_CLIENT_V2" "OpenVpnClient: has P_CONTROL_HARD_RESET_CLIENT_V2 constant"
 check_content "$PROJECT_ROOT/src/services/vpnService.ts" "onVPNStateChanged" "JS bridge: listens to onVPNStateChanged"
+check_content "$JAVA_SRC/BeardVpnService.kt" "LocalBinder" "VPN Service: has LocalBinder for bound service"
 
 # BeardVpnService notification (foreground service shows in notification bar)
 check_content "$JAVA_SRC/BeardVpnService.kt" "startForeground" "VPN Service: shows foreground notification"
@@ -266,14 +273,29 @@ check_content "$JAVA_SRC/BeardVpnService.kt" "setSession" "VPN Service: sets VPN
 # ============================================================================
 # T10: Ad Integration
 # ============================================================================
-header "T10: Ad Integration"
+header "T10: Ad Integration (AdMob)"
 
-check_content "$PROJECT_ROOT/src/config/adConfig.ts" "zoneId" "Ad config: zoneId set"
-check_content "$PROJECT_ROOT/src/config/adConfig.ts" "scriptUrl" "Ad config: scriptUrl set"
-check_content "$PROJECT_ROOT/src/components/MonetagAd.tsx" "WebView" "MonetagAd: uses WebView"
-check_content "$PROJECT_ROOT/App.tsx" "MonetagAd" "App: integrates MonetagAd"
+check_content "$PROJECT_ROOT/src/config/adConfig.ts" "admob" "Ad config: admob section present"
+check_content "$PROJECT_ROOT/src/config/adConfig.ts" "bannerAdUnitId" "Ad config: bannerAdUnitId set"
+check_content "$PROJECT_ROOT/src/config/adConfig.ts" "rewardedAdUnitId" "Ad config: rewardedAdUnitId set"
+check_content "$PROJECT_ROOT/src/config/adConfig.ts" "interstitialAdUnitId" "Ad config: interstitialAdUnitId set"
+check_content "$PROJECT_ROOT/src/services/adService.ts" "initializeAds" "AdMob service: initializeAds function"
+check_content "$PROJECT_ROOT/src/services/adService.ts" "loadRewardedAd" "AdMob service: loadRewardedAd function"
+check_content "$PROJECT_ROOT/src/services/adService.ts" "showRewardedAd" "AdMob service: showRewardedAd function"
+check_content "$PROJECT_ROOT/src/components/RewardedAdFlow.tsx" "RewardedAdFlow" "RewardedAdFlow: component exists"
+check_content "$PROJECT_ROOT/src/components/AdBanner.tsx" "BannerAd" "AdBanner: uses BannerAd component"
+check_content "$PROJECT_ROOT/App.tsx" "RewardedAdFlow" "App: integrates RewardedAdFlow"
 check_content "$PROJECT_ROOT/App.tsx" "showAd" "App: has showAd state"
 check_content "$PROJECT_ROOT/App.tsx" "shouldShowAd" "App: has ad cooldown logic"
+check_content "$PROJECT_ROOT/App.tsx" "initializeAds" "App: initializes AdMob on startup"
+# Verify MonetagAd.tsx is deleted (replaced by AdMob)
+if [ ! -f "$PROJECT_ROOT/src/components/MonetagAd.tsx" ]; then
+  pass "MonetagAd.tsx: deleted (replaced by AdMob)"
+else
+  warn "MonetagAd.tsx: still exists (should be removed)"
+fi
+check_content "$PROJECT_ROOT/app.json" "react-native-google-mobile-ads" "app.json: AdMob plugin configured"
+check_content "$PROJECT_ROOT/app.json" "androidAppId" "app.json: androidAppId set"
 
 # ============================================================================
 # T11: UI Design Validation
@@ -291,7 +313,16 @@ done
 
 # ConnectButton: proper VPN power icon design
 check_content "$PROJECT_ROOT/src/components/ConnectButton.tsx" "Animated" "ConnectButton: uses Animated API"
-check_content "$PROJECT_ROOT/src/components/ConnectButton.tsx" "CONNECT" "ConnectButton: has connect text"
+check_content "$PROJECT_ROOT/src/components/ConnectButton.tsx" "CONNECT" "ConnectButton: has connect state"
+check_content "$PROJECT_ROOT/src/components/ConnectButton.tsx" "CONNECTED" "ConnectButton: has connected state"
+check_content "$PROJECT_ROOT/src/components/ConnectButton.tsx" "onDisconnect" "ConnectButton: handles disconnect"
+
+# HomeScreen uses ServerCard
+check_content "$PROJECT_ROOT/src/screens/HomeScreen.tsx" "ServerCard" "HomeScreen: uses ServerCard component"
+check_not_content "$PROJECT_ROOT/src/screens/HomeScreen.tsx" "\\\\u203A" "HomeScreen: no arrow button (removed)"
+
+# AdBanner component exists
+check_content "$PROJECT_ROOT/src/components/AdBanner.tsx" "BannerAd" "AdBanner: uses BannerAd"
 
 # Navigator has proper tab bar styling
 if grep -qE "backgroundColor.*#(0f172a|0a0f1e)" "$PROJECT_ROOT/src/navigation/AppNavigator.tsx" 2>/dev/null; then

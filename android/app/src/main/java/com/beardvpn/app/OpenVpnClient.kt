@@ -41,13 +41,14 @@ class OpenVpnClient(
 
     private var serverToTunThread: Thread? = null
     private var tunToServerThread: Thread? = null
+    private val stopped = AtomicBoolean(false)
 
     companion object {
         private const val TAG = "OpenVpnClient"
         private const val OPENVPN_MTU = 1500
         private const val P_DATA_V1 = 0x30
-        private const val P_CONTROL_HARD_RESET_CLIENT_V2 = 0x38
         private const val P_ACK_V1 = 0x28
+        private const val P_CONTROL_HARD_RESET_CLIENT_V2 = 0x08
         private const val P_PUSH_REQUEST = 0x38
         private const val SOCKET_TIMEOUT_MS = 10000
     }
@@ -59,11 +60,10 @@ class OpenVpnClient(
             try {
                 connectAndRun()
             } catch (e: Exception) {
-                Log.e(TAG, "Connection failed", e)
+                Log.e(TAG, "Connection failed: ${e.message}", e)
                 if (running.get()) {
                     onError(e.message ?: "Connection failed")
                     running.set(false)
-                    onDisconnected()
                 }
             }
         }, "OpenVPN-Main").start()
@@ -72,9 +72,11 @@ class OpenVpnClient(
     }
 
     fun stop() {
+        if (stopped.getAndSet(true)) return
         running.set(false)
         try { sslSocket?.close() } catch (_: Exception) {}
-        try { tunFd?.close() } catch (_: Exception) {}
+        try { tunInput?.close() } catch (_: Exception) {}
+        try { tunOutput?.close() } catch (_: Exception) {}
         serverToTunThread?.interrupt()
         tunToServerThread?.interrupt()
         onDisconnected()
@@ -125,7 +127,9 @@ class OpenVpnClient(
         serverToTunThread?.join()
         tunToServerThread?.join()
 
-        stop()
+        if (running.get()) {
+            stop()
+        }
     }
 
     private fun createSSLContext(): SSLContext {

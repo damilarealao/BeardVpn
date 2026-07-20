@@ -6,7 +6,9 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
 import android.net.VpnService
+import android.os.Binder
 import android.os.Build
+import android.os.IBinder
 import android.os.ParcelFileDescriptor
 import android.util.Log
 
@@ -15,6 +17,13 @@ class BeardVpnService : VpnService() {
     private var vpnInterface: ParcelFileDescriptor? = null
     private var openVpnClient: OpenVpnClient? = null
     private var isRunning = false
+    private val binder = LocalBinder()
+
+    inner class LocalBinder : Binder() {
+        fun getService(): BeardVpnService = this@BeardVpnService
+    }
+
+    override fun onBind(intent: Intent?): IBinder = binder
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.i(TAG, "onStartCommand action=${intent?.action}")
@@ -98,7 +107,6 @@ class BeardVpnService : VpnService() {
                     onDisconnected = {
                         Log.i(TAG, "OpenVPN disconnected")
                         isRunning = false
-                        sendEvent("onVPNStateChanged", "disconnected")
                     },
                     onError = { error ->
                         Log.e(TAG, "OpenVPN error: $error")

@@ -40,6 +40,13 @@
         "projectId": "beardvpn-mobile"
       }
     },
-    "plugins": []
+    "plugins": [
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-8194810458712293~2696147769"
+        }
+      ]
+    ]
   }
 }

@@ -245,12 +245,14 @@ check_file "$PROJECT_ROOT/src/screens/SettingsScreen.tsx"
 # Components
 check_file "$PROJECT_ROOT/src/components/ConnectButton.tsx"
 check_file "$PROJECT_ROOT/src/components/ServerCard.tsx"
-check_file "$PROJECT_ROOT/src/components/MonetagAd.tsx"
+check_file "$PROJECT_ROOT/src/components/RewardedAdFlow.tsx"
+check_file "$PROJECT_ROOT/src/components/AdBanner.tsx"
 
 # Services
 check_file "$PROJECT_ROOT/src/services/vpnService.ts"
 check_file "$PROJECT_ROOT/src/services/serverService.ts"
 check_file "$PROJECT_ROOT/src/services/storageService.ts"
+check_file "$PROJECT_ROOT/src/services/adService.ts"
 
 # Hooks
 check_file "$PROJECT_ROOT/src/hooks/useVpn.ts"
@@ -432,34 +434,37 @@ done
 # ============================================================================
 # Phase 9: Ad Integration Check
 # ============================================================================
-header "Phase 9: Ad Integration"
+header "Phase 9: Ad Integration (AdMob)"
 
-# Monetag config
-if grep -q "zoneId" "$PROJECT_ROOT/src/config/adConfig.ts"; then
-  ZONE_ID=$(grep "zoneId" "$PROJECT_ROOT/src/config/adConfig.ts" | grep -oP "'\K[^']+")
-  pass "Monetag zone ID: $ZONE_ID"
+# AdMob config
+if grep -q "admob" "$PROJECT_ROOT/src/config/adConfig.ts"; then
+  pass "AdMob config section present"
 fi
 
-if grep -q "scriptUrl" "$PROJECT_ROOT/src/config/adConfig.ts"; then
-  pass "Monetag script URL configured"
+if grep -q "bannerAdUnitId" "$PROJECT_ROOT/src/config/adConfig.ts"; then
+  pass "Banner ad unit ID configured"
 fi
 
-# WebView dependency
-if [ -d "node_modules/react-native-webview" ]; then
-  WEBVIEW_VER=$(node -e "console.log(require('react-native-webview/package.json').version)" 2>/dev/null || echo "unknown")
-  pass "react-native-webview: $WEBVIEW_VER"
+if grep -q "rewardedAdUnitId" "$PROJECT_ROOT/src/config/adConfig.ts"; then
+  pass "Rewarded ad unit ID configured"
+fi
+
+# AdMob SDK
+if [ -d "node_modules/react-native-google-mobile-ads" ]; then
+  ADMOB_VER=$(node -e "console.log(require('react-native-google-mobile-ads/package.json').version)" 2>/dev/null || echo "unknown")
+  pass "react-native-google-mobile-ads: $ADMOB_VER"
 else
-  fail "react-native-webview not installed"
+  fail "react-native-google-mobile-ads not installed"
 fi
 
-# MonetagAd component
-if grep -q "WebView" "$PROJECT_ROOT/src/components/MonetagAd.tsx"; then
-  pass "MonetagAd uses WebView"
+# Ad components
+if grep -q "RewardedAdFlow" "$PROJECT_ROOT/App.tsx"; then
+  pass "RewardedAdFlow integrated in App.tsx"
 fi
 
-# Ad in App.tsx
-if grep -q "MonetagAd" "$PROJECT_ROOT/App.tsx"; then
-  pass "MonetagAd integrated in App.tsx"
+if grep -q "AdBanner" "$PROJECT_ROOT/src/screens/HomeScreen.tsx"; then
+  pass "AdBanner displayed on HomeScreen"
+fi
 fi
 
 # ============================================================================

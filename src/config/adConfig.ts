@@ -1,13 +1,13 @@
 export const AD_CONFIG = {
-  monetag: {
-    zoneId: '11341641',
-    format: 'vignette',
-    scriptUrl: 'https://quge5.com/88/tag.min.js',
-    // Rewarded: ad shows BEFORE connect, VPN connects after ad auto-closes
-    showBeforeConnect: true,
-    // Minimum seconds between ads
-    cooldownSeconds: 60,
-    // Countdown before ad auto-closes
-    closeDelaySeconds: 5,
+  provider: 'admob' as const,
+
+  admob: {
+    appId: 'ca-app-pub-8194810458712293~2696147769',
+    bannerAdUnitId: 'ca-app-pub-8194810458712293/8251726779',
+    rewardedAdUnitId: 'ca-app-pub-8194810458712293/7114170853',
+    interstitialAdUnitId: 'ca-app-pub-8194810458712293/3494490040',
   },
+
+  cooldownSeconds: 60,
+  closeDelaySeconds: 5,
 };
