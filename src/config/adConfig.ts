@@ -1,6 +1,7 @@
 export const AD_CONFIG = {
   monetag: {
-    zoneId: '260947',
+    zoneId: '11341641',
+    format: 'vignette',
     scriptUrl: 'https://quge5.com/88/tag.min.js',
     // Rewarded: ad shows BEFORE connect, VPN connects after ad auto-closes
     showBeforeConnect: true,

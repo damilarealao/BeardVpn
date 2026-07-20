@@ -36,7 +36,7 @@ const AD_HTML = `<!DOCTYPE html>
   <script>
     var atOptions = {
       'key': '${AD_CONFIG.monetag.zoneId}',
-      'format': 'interstitial',
+      'format': '${AD_CONFIG.monetag.format}',
       'height': 90,
       'width': 728,
       'params': {}
