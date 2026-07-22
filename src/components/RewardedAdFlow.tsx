@@ -1,35 +1,41 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { loadRewardedAd, showRewardedAd } from '../services/adService';
 import { AD_CONFIG } from '../config/adConfig';
 
 interface RewardedAdFlowProps {
   visible: boolean;
-  onClose: () => void;
+  onClose: (rewardGranted: boolean) => void;
 }
+
+const AD_LOAD_TIMEOUT_MS = 12000;
 
 export function RewardedAdFlow({ visible, onClose }: RewardedAdFlowProps) {
   const [adLoaded, setAdLoaded] = useState(false);
+  const [adFailed, setAdFailed] = useState(false);
   const [countdown, setCountdown] = useState(AD_CONFIG.closeDelaySeconds);
   const [rewardEarned, setRewardEarned] = useState(false);
   const onCloseRef = useRef(onClose);
   const closedRef = useRef(false);
+  const rewardRef = useRef(false);
   onCloseRef.current = onClose;
-
-  useEffect(() => {
-    closedRef.current = false;
-  }, [visible]);
 
   const safeClose = useRef(() => {
     if (!closedRef.current) {
       closedRef.current = true;
-      onCloseRef.current();
+      onCloseRef.current(rewardRef.current);
     }
   });
 
   useEffect(() => {
+    closedRef.current = false;
+    rewardRef.current = false;
+  }, [visible]);
+
+  useEffect(() => {
     if (!visible) {
       setAdLoaded(false);
+      setAdFailed(false);
       setCountdown(AD_CONFIG.closeDelaySeconds);
       setRewardEarned(false);
       closedRef.current = false;
@@ -38,15 +44,27 @@ export function RewardedAdFlow({ visible, onClose }: RewardedAdFlowProps) {
 
     setCountdown(AD_CONFIG.closeDelaySeconds);
     setRewardEarned(false);
+    setAdFailed(false);
 
     const unsub = loadRewardedAd({
       onLoaded: () => setAdLoaded(true),
-      onEarned: () => setRewardEarned(true),
+      onEarned: () => { rewardRef.current = true; setRewardEarned(true); },
       onClosed: () => safeClose.current(),
-      onError: () => safeClose.current(),
+      onError: () => {
+        setAdFailed(true);
+        safeClose.current();
+      },
     });
 
+    const timeout = setTimeout(() => {
+      if (!closedRef.current && !rewardRef.current) {
+        setAdFailed(true);
+        safeClose.current();
+      }
+    }, AD_LOAD_TIMEOUT_MS);
+
     return () => {
+      clearTimeout(timeout);
       if (typeof unsub === 'function') unsub();
     };
   }, [visible]);
@@ -84,7 +102,9 @@ export function RewardedAdFlow({ visible, onClose }: RewardedAdFlowProps) {
         {!adLoaded ? (
           <View style={styles.loadingBox}>
             <View style={styles.spinner} />
-            <Text style={styles.loadingText}>Loading ad...</Text>
+            <Text style={styles.loadingText}>
+              {adFailed ? 'Ad unavailable — connecting...' : 'Loading ad...'}
+            </Text>
           </View>
         ) : (
           <View style={styles.content}>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { NavigationContainer, useNavigation } from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HomeScreen } from '../screens/HomeScreen';
@@ -94,6 +94,7 @@ export function AppNavigator({
               onServerListPress={() => navigation.navigate('Servers' as never)}
               onSelectServer={onSelectServer}
               isLoading={isLoading}
+              onRefresh={onRefresh}
             />
           )}
         </Tab.Screen>

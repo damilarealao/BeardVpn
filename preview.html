@@ -2,1038 +2,253 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BeardVpn UI Preview</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>BeardVpn Preview</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: #111;
-    color: #fff;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: 100vh;
-    padding: 30px 20px;
-  }
-  h1 { font-size: 24px; margin-bottom: 8px; color: #f1f5f9; }
-  .subtitle { color: #64748b; font-size: 14px; margin-bottom: 24px; }
-  .tabs {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 24px;
-  }
-  .tab-btn {
-    padding: 10px 24px;
-    border: 1px solid #334155;
-    background: #1e293b;
-    color: #94a3b8;
-    border-radius: 10px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    transition: all 0.2s;
-  }
-  .tab-btn.active {
-    background: #2563eb;
-    color: #fff;
-    border-color: #3b82f6;
-  }
-  .tab-btn:hover { border-color: #3b82f6; }
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#0a0f1e;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;color:#f1f5f9;max-width:400px;margin:0 auto;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+.safe-top{height:44px}
+.header{display:flex;align-items:center;justify-content:space-between;padding:8px 20px}
+.header-title{font-size:22px;font-weight:800;letter-spacing:0.3px}
+.status-badge{display:inline-flex;align-items:center;gap:6px;background:#1e293b;padding:5px 10px;border-radius:20px}
+.status-dot{width:6px;height:6px;border-radius:3px}
+.status-badge-text{font-size:10px;font-weight:700;letter-spacing:1px}
+.logo-section{text-align:center;padding:16px 0 8px}
+.logo-section img{width:96px;height:96px}
 
-  /* Phone frame */
-  .phone {
-    width: 375px;
-    height: 720px;
-    border-radius: 36px;
-    border: 3px solid #334155;
-    overflow: hidden;
-    background: #0a0f1e;
-    position: relative;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-  }
-  .screen { display: none; height: 100%; overflow-y: auto; }
-  .screen.active { display: flex; flex-direction: column; }
+/* Connect */
+.connect-section{text-align:center;padding:20px 0;position:relative}
+.connect-wrap{position:relative;display:inline-block}
+.idle-glow{position:absolute;top:-10px;left:-10px;width:220px;height:220px;border-radius:50%;background:#2563eb;opacity:0;animation:idleGlow 5s ease-in-out infinite;pointer-events:none;z-index:1}
+@keyframes idleGlow{0%,100%{opacity:0}50%{opacity:0.15}}
+.connect-btn{width:200px;height:200px;border-radius:50%;border:3px solid #3b82f6;background:#0c1a3d;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:transform 0.15s;position:relative;z-index:2}
+.connect-btn:active{transform:scale(0.95)}
+.connect-btn.connected{border-color:#22c55e;background:#052e16;animation:connPulse 3s ease-in-out infinite}
+@keyframes connPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+.connect-btn.connecting-state{border-color:#b45309;background:#1c1917;cursor:default}
 
-  /* Status bar */
-  .status-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 20px 4px;
-    font-size: 12px;
-    color: #94a3b8;
-  }
-  .status-bar-icons { display: flex; gap: 6px; align-items: center; }
+.power-icon{width:36px;height:36px;border:3.5px solid #60a5fa;border-radius:50%;border-bottom-color:transparent;position:relative}
+.power-icon::after{content:'';position:absolute;left:50%;top:-4px;transform:translateX(-50%);width:3.5px;height:16px;background:#60a5fa;border-radius:2px}
+.connected .power-icon{border-color:#4ade80}
+.connected .power-icon::after{background:#4ade80}
+.connecting-state .power-icon{display:none}
 
-  /* Tab bar */
-  .tab-bar {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    padding: 8px 0 20px;
-    background: #0f172a;
-    border-top: 1px solid #1e293b;
-    position: sticky;
-    bottom: 0;
-    margin-top: auto;
-  }
-  .tab-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-    cursor: pointer;
-  }
-  .tab-item .icon { font-size: 20px; color: #64748b; }
-  .tab-item.active .icon { color: #3b82f6; }
-  .tab-item .label { font-size: 10px; color: #64748b; font-weight: 600; }
-  .tab-item.active .label { color: #3b82f6; }
+.spinner-wrap{width:48px;height:48px;border:4px solid rgba(250,204,21,0.2);border-top-color:#facc15;border-right-color:#facc15;border-radius:50%;animation:spin 1.2s linear infinite;margin-bottom:10px}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-  /* ========== HOME SCREEN ========== */
-  .home-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 20px 8px;
-  }
-  .home-header-title {
-    font-size: 22px;
-    font-weight: 800;
-    color: #f1f5f9;
-    letter-spacing: 0.3px;
-  }
-  .status-badge {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: #1e293b;
-    padding: 5px 10px;
-    border-radius: 20px;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 1px;
-  }
-  .status-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 3px;
-  }
+.conn-label{margin-top:10px;font-size:14px;font-weight:800;letter-spacing:2px;color:#60a5fa}
+.connected .conn-label{color:#4ade80}
+.connecting-state .conn-label{color:#facc15;font-size:13px}
 
-  /* Shield area */
-  .shield-area {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px 0 8px;
-  }
-  .shield-icon {
-    width: 96px;
-    height: 96px;
-    margin-bottom: 12px;
-  }
-  .shield-icon img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-  }
-  .shield-label {
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    margin-bottom: 2px;
-  }
-  .shield-sublabel {
-    font-size: 12px;
-    color: #64748b;
-  }
+.main-status{text-align:center;font-size:13px;font-weight:700;letter-spacing:1.5px;margin-top:16px}
+.sub-info{text-align:center;color:#64748b;font-size:11px;margin-top:4px}
+.encrypt-text{text-align:center;color:#4b5563;font-size:11px;margin-top:2px}
 
-  /* Connect button */
-  .connect-area {
-    display: flex;
-    justify-content: center;
-    padding: 16px 0;
-  }
-  .connect-ring {
-    width: 140px;
-    height: 140px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    cursor: pointer;
-    transition: all 0.3s;
-  }
-  .connect-ring:hover { transform: scale(1.03); }
-  .connect-inner {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.03);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-  }
-  .power-icon {
-    width: 32px;
-    height: 32px;
-    border: 3px solid currentColor;
-    border-radius: 16px;
-    border-bottom-color: transparent;
-    position: relative;
-  }
-  .power-icon::after {
-    content: '';
-    position: absolute;
-    width: 3px;
-    height: 14px;
-    background: currentColor;
-    border-radius: 2px;
-    left: 50%;
-    transform: translateX(-50%);
-    top: -8px;
-  }
-  .connect-label {
-    font-size: 12px;
-    font-weight: 800;
-    letter-spacing: 1.5px;
-  }
+/* Speed */
+.speed-cards{display:flex;gap:10px;margin:0 20px 12px}
+.speed-card{flex:1;background:#111827;border-radius:12px;padding:12px;border:1px solid #1f2937}
+.speed-card-label{color:#6b7280;font-size:10px;font-weight:600;letter-spacing:1px}
+.speed-card-value{color:#e5e7eb;font-size:16px;font-weight:700;font-family:'SF Mono','Menlo',monospace;margin-top:4px}
 
-  /* Stats row */
-  .stats-row {
-    display: flex;
-    gap: 10px;
-    padding: 0 20px 12px;
-  }
-  .stat-card {
-    flex: 1;
-    background: #111827;
-    border: 1px solid #1f2937;
-    border-radius: 12px;
-    padding: 12px;
-  }
-  .stat-label {
-    font-size: 10px;
-    font-weight: 600;
-    color: #6b7280;
-    letter-spacing: 1px;
-  }
-  .stat-value {
-    font-size: 16px;
-    font-weight: 700;
-    font-family: 'SF Mono', 'Cascadia Code', monospace;
-    color: #e5e7eb;
-    margin-top: 4px;
-  }
+/* Section */
+.section-wrap{margin:0 16px 12px}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding:0 4px}
+.section-title{color:#94a3b8;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.section-link{color:#60a5fa;font-size:12px;font-weight:600;cursor:pointer}
 
-  /* Server card */
-  .server-preview-card {
-    margin: 0 20px 16px;
-    background: #111827;
-    border: 1px solid #1f2937;
-    border-radius: 16px;
-    padding: 16px;
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    transition: opacity 0.2s;
-  }
-  .server-preview-card:hover { opacity: 0.85; }
-  .server-flag-box {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    background: #1e293b;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 26px;
-    margin-right: 14px;
-    flex-shrink: 0;
-  }
-  .server-info { flex: 1; }
-  .server-country { font-size: 15px; font-weight: 700; color: #f9fafb; }
-  .server-ip { font-size: 12px; color: #6b7280; margin-top: 2px; }
-  .server-speed-info { text-align: right; margin-right: 8px; }
-  .server-speed-val { font-size: 12px; font-weight: 600; color: #60a5fa; font-family: monospace; }
-  .server-ping { font-size: 11px; color: #6b7280; font-family: monospace; margin-top: 2px; }
-  .arrow-circle {
-    width: 28px;
-    height: 28px;
-    border-radius: 14px;
-    background: #1e293b;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #60a5fa;
-    font-size: 16px;
-    flex-shrink: 0;
-  }
+/* Server Card */
+.s-card{display:flex;align-items:center;padding:14px 12px;margin-bottom:6px;border-radius:14px;border:1px solid #334155;background:#1e293b;cursor:pointer;transition:opacity 0.1s}
+.s-card:active{opacity:0.8}
+.s-card.sel{background:rgba(30,64,175,0.4);border-color:#3b82f6}
+.s-card .flag{font-size:28px;margin-right:12px}
+.s-card .info{flex:1}
+.s-card .cntry-row{display:flex;align-items:center;gap:8px}
+.s-card .cntry-name{color:#f1f5f9;font-size:16px;font-weight:600}
+.badge-free{background:rgba(34,197,94,0.15);color:#4ade80;font-size:11px;font-weight:700;padding:2px 8px;border-radius:8px}
+.badge-pro{background:rgba(139,92,246,0.15);color:#a78bfa;font-size:11px;font-weight:700;padding:2px 8px;border-radius:8px}
+.s-card .hostline{color:#64748b;font-size:12px;margin-top:3px}
+.s-card .stats{text-align:right}
+.s-card .spd{font-size:13px;font-weight:600;font-family:'SF Mono','Menlo',monospace}
+.s-card .png{font-size:11px;font-family:'SF Mono','Menlo',monospace;margin-top:2px}
+.s-card .dot{margin-left:12px;width:8px;height:8px;border-radius:50%;background:#3b82f6;flex-shrink:0}
 
-  /* Top servers section */
-  .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 20px;
-    margin-bottom: 10px;
-  }
-  .section-title {
-    font-size: 12px;
-    font-weight: 700;
-    color: #94a3b8;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
-  .view-all {
-    font-size: 12px;
-    font-weight: 600;
-    color: #60a5fa;
-    cursor: pointer;
-  }
-  .top-server-row {
-    display: flex;
-    align-items: center;
-    padding: 12px 16px;
-    margin: 0 20px 6px;
-    background: #111827;
-    border: 1px solid #1f2937;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: opacity 0.2s;
-  }
-  .top-server-row:hover { opacity: 0.85; }
-  .top-server-flag { font-size: 20px; margin-right: 10px; }
-  .top-server-info { flex: 1; }
-  .top-server-name { font-size: 13px; font-weight: 600; color: #e5e7eb; }
-  .top-server-op { font-size: 11px; color: #6b7280; margin-top: 1px; }
-  .top-server-speed { text-align: right; }
-  .top-server-speed-val { font-size: 11px; font-weight: 600; font-family: monospace; }
-  .top-server-ping { font-size: 10px; color: #6b7280; font-family: monospace; margin-top: 1px; }
-  .free-badge {
-    margin-left: 8px;
-    background: rgba(74,222,128,0.12);
-    padding: 2px 6px;
-    border-radius: 6px;
-    font-size: 9px;
-    font-weight: 700;
-    color: #4ade80;
-  }
+/* Select Server */
+.select-box{margin:0 16px 12px;background:#1e293b;border:1px dashed #334155;border-radius:14px;padding:20px 16px;text-align:center;cursor:pointer}
+.select-box:active{opacity:0.7}
+.select-box .globe{font-size:32px;margin-bottom:8px}
+.select-box .lbl{color:#f1f5f9;font-size:15px;font-weight:600}
+.select-box .sub{color:#64748b;font-size:12px;margin-top:4px}
 
-  /* ========== SERVERS SCREEN ========== */
-  .servers-header {
-    display: flex;
-    align-items: center;
-    padding: 12px 16px;
-  }
-  .back-btn {
-    color: #60a5fa;
-    font-size: 24px;
-    margin-right: 12px;
-    cursor: pointer;
-    padding: 8px;
-  }
-  .servers-title { font-size: 22px; font-weight: bold; flex: 1; }
-  .server-count-badge {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: #1e293b;
-    padding: 5px 10px;
-    border-radius: 12px;
-    font-size: 12px;
-  }
-  .search-box {
-    margin: 0 16px 12px;
-    background: #111827;
-    border: 1px solid #1f2937;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    padding: 0 14px;
-  }
-  .search-icon { color: #4b5563; font-size: 16px; margin-right: 8px; }
-  .search-input {
-    flex: 1;
-    padding: 12px 0;
-    background: transparent;
-    border: none;
-    outline: none;
-    color: #f1f5f9;
-    font-size: 14px;
-  }
-  .search-input::placeholder { color: #4b5563; }
-  .search-clear {
-    color: #6b7280;
-    font-size: 16px;
-    cursor: pointer;
-    padding: 4px;
-  }
+/* Kill Switch */
+.kills{margin:0 16px 12px;background:rgba(154,52,18,0.25);border:1px solid rgba(249,115,22,0.5);border-radius:12px;padding:14px}
+.kills .kst{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.kills .kst span{color:#f97316;font-size:14px;font-weight:700}
+.kills .ksd{color:#fb923c;font-size:12px;line-height:18px}
+.kills .ksx{margin-top:10px;background:rgba(249,115,22,0.2);border:1px solid #f97316;border-radius:8px;padding:8px;text-align:center;cursor:pointer}
+.kills .ksx:active{opacity:0.7}
+.kills .ksx span{color:#f97316;font-size:12px;font-weight:700;letter-spacing:1px}
 
-  /* Country chips */
-  .chips-row {
-    display: flex;
-    gap: 8px;
-    padding: 0 16px;
-    overflow-x: auto;
-    margin-bottom: 10px;
-    scrollbar-width: none;
-  }
-  .chips-row::-webkit-scrollbar { display: none; }
-  .chip {
-    padding: 6px 12px;
-    border-radius: 20px;
-    border: 1px solid #1f2937;
-    background: #111827;
-    color: #94a3b8;
-    font-size: 12px;
-    font-weight: 500;
-    white-space: nowrap;
-    cursor: pointer;
-    transition: all 0.2s;
-    flex-shrink: 0;
-  }
-  .chip.active {
-    background: #2563eb;
-    border-color: #3b82f6;
-    color: #fff;
-    font-weight: 700;
-  }
-  .server-list-header {
-    padding: 8px 16px;
-    font-size: 11px;
-    font-weight: 600;
-    color: #6b7280;
-    letter-spacing: 1px;
-  }
+/* Error */
+.err{margin:0 16px 12px;background:rgba(127,29,29,0.2);border:1px solid rgba(185,28,28,0.4);border-radius:12px;padding:12px;text-align:center}
+.err span{color:#f87171;font-size:13px;font-weight:600}
 
-  /* Server list item */
-  .server-list-item {
-    display: flex;
-    align-items: center;
-    padding: 14px 16px;
-    margin: 0 16px 6px;
-    border-radius: 14px;
-    border: 1px solid #334155;
-    background: #1e293b;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .server-list-item:hover { opacity: 0.85; }
-  .server-list-item.selected {
-    background: rgba(30,64,175,0.4);
-    border-color: #3b82f6;
-  }
-  .server-list-flag { font-size: 28px; margin-right: 12px; }
-  .server-list-info { flex: 1; }
-  .server-list-row { display: flex; align-items: center; gap: 8px; }
-  .server-list-name { font-size: 16px; font-weight: 600; color: #f1f5f9; }
-  .server-list-host { font-size: 12px; color: #64748b; margin-top: 3px; }
-  .server-list-stats { text-align: right; }
-  .server-list-speed { font-size: 13px; font-weight: 600; font-family: monospace; }
-  .server-list-ping { font-size: 11px; font-family: monospace; margin-top: 2px; }
-  .selected-dot {
-    margin-left: 12px;
-    width: 8px;
-    height: 8px;
-    border-radius: 4px;
-    background: #3b82f6;
-  }
+/* Loading */
+.load{text-align:center;padding:24px 20px}
+.load-spin{width:36px;height:36px;border:3px solid rgba(59,130,246,0.2);border-top-color:#3b82f6;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto}
+.load .t{color:#e5e7eb;font-size:14px;font-weight:600;margin-top:12px}
+.load .s{color:#64748b;font-size:12px;margin-top:4px}
 
-  /* ========== SETTINGS SCREEN ========== */
-  .settings-header {
-    padding: 12px 16px 20px;
-    font-size: 26px;
-    font-weight: bold;
-  }
-  .settings-section { margin: 0 16px 24px; }
-  .settings-label {
-    font-size: 12px;
-    font-weight: 600;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 10px;
-  }
-  .settings-card {
-    background: #1e293b;
-    border: 1px solid #334155;
-    border-radius: 14px;
-    overflow: hidden;
-  }
-  .settings-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 16px;
-  }
-  .settings-row + .settings-row {
-    border-top: 1px solid #334155;
-  }
-  .settings-row-label { font-size: 15px; color: #e2e8f0; }
-  .settings-row-value { font-size: 13px; color: #64748b; font-family: monospace; }
-  .check-circle {
-    width: 20px;
-    height: 20px;
-    border-radius: 10px;
-    background: #3b82f6;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-size: 12px;
-    margin-left: 10px;
-  }
-  .settings-row-sub { font-size: 12px; color: #64748b; margin-top: 2px; }
+/* No servers */
+.nosrv{text-align:center;padding:24px 20px}
+.nosrv .t{color:#f87171;font-size:14px;font-weight:600;margin-bottom:4px}
+.nosrv .s{color:#64748b;font-size:12px}
 
-  /* Toggle */
-  .toggle {
-    width: 44px;
-    height: 26px;
-    border-radius: 13px;
-    position: relative;
-    cursor: pointer;
-    transition: background 0.3s;
-  }
-  .toggle.on { background: #1d4ed8; }
-  .toggle.off { background: #374151; }
-  .toggle-knob {
-    width: 22px;
-    height: 22px;
-    border-radius: 11px;
-    position: absolute;
-    top: 2px;
-    transition: left 0.3s;
-  }
-  .toggle.on .toggle-knob { left: 20px; background: #60a5fa; }
-  .toggle.off .toggle-knob { left: 2px; background: #9ca3af; }
+/* Ad */
+.ad-banner{margin:12px 0 0;background:#0f172a;padding:4px 0;text-align:center}
+.ad-inner{background:#1a1a2e;border:1px dashed #334155;border-radius:4px;height:50px;display:flex;align-items:center;justify-content:center;max-width:320px;margin:0 auto}
+.ad-inner span{color:#4b5563;font-size:11px}
 
-  .about-card {
-    background: #1e293b;
-    border: 1px solid #334155;
-    border-radius: 14px;
-    padding: 16px;
-  }
-  .about-name { font-size: 18px; font-weight: 700; color: #f1f5f9; }
-  .about-version { font-size: 13px; color: #64748b; margin-top: 4px; }
-  .about-desc { font-size: 12px; color: #475569; margin-top: 10px; line-height: 18px; }
-  .privacy-note {
-    text-align: center;
-    font-size: 11px;
-    color: #475569;
-    line-height: 16px;
-    padding: 0 16px 16px;
-  }
-
-  .note-box {
-    margin-top: 24px;
-    padding: 16px;
-    background: #1e293b;
-    border: 1px solid #334155;
-    border-radius: 12px;
-    max-width: 375px;
-    width: 100%;
-  }
-  .note-box h3 { font-size: 14px; color: #facc15; margin-bottom: 8px; }
-  .note-box ul { font-size: 13px; color: #94a3b8; line-height: 20px; padding-left: 16px; }
-  .note-box li { margin-bottom: 2px; }
-  .note-box code { background: #0f172a; padding: 1px 5px; border-radius: 4px; font-size: 12px; color: #60a5fa; }
+/* Controls */
+.controls{position:fixed;bottom:0;left:0;right:0;max-width:400px;margin:0 auto;background:#111827;border-top:1px solid #1f2937;padding:8px 12px 12px;z-index:100}
+.ctrl-label{text-align:center;font-size:9px;font-weight:700;letter-spacing:1px;color:#64748b;margin-bottom:6px}
+.ctrl-row{display:flex;gap:4px;justify-content:center;flex-wrap:wrap}
+.cb{background:#0f172a;border:1px solid #334155;color:#94a3b8;padding:5px 8px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:0.5px;cursor:pointer;transition:all 0.15s;white-space:nowrap}
+.cb:hover{border-color:#3b82f6;color:#60a5fa}
+.cb.on{background:#1e3a5f;border-color:#3b82f6;color:#60a5fa}
+.cb.green{background:#052e16;border-color:#22c55e;color:#4ade80}
+.scroll-pad{padding-bottom:100px}
 </style>
 </head>
 <body>
-
-<h1>BeardVpn UI Preview</h1>
-<p class="subtitle">Review these screens before I build. Tell me what to change.</p>
-
-<div class="tabs">
-  <button class="tab-btn active" onclick="showScreen('home', this)">Home</button>
-  <button class="tab-btn" onclick="showScreen('servers', this)">Servers</button>
-  <button class="tab-btn" onclick="showScreen('settings', this)">Settings</button>
-</div>
-
-<div class="phone">
-
-  <!-- ===== HOME SCREEN ===== -->
-  <div id="screen-home" class="screen active">
-    <div class="status-bar">
-      <span>9:41</span>
-      <div class="status-bar-icons">
-        <span>&#9679;&#9679;&#9679;</span>
-        <span>&#128267;</span>
-      </div>
-    </div>
-
-    <div class="home-header">
-      <span class="home-header-title">BeardVpn</span>
-      <div class="status-badge">
-        <div class="status-dot" style="background: #64748b;"></div>
-        <span style="color: #64748b;">NOT CONNECTED</span>
-      </div>
-    </div>
-
-    <div class="shield-area">
-      <div class="shield-icon">
-        <img src="assets/icon.png" alt="BeardVpn Logo">
-      </div>
-      <div class="shield-label" style="color: #64748b;">NOT CONNECTED</div>
-    </div>
-
-    <div class="connect-area">
-      <div class="connect-ring" style="border: 3px solid #2563eb; background: #0c1a3d;" onclick="toggleConnect(this)">
-        <div class="connect-inner">
-          <div class="power-icon" style="color: #60a5fa;"></div>
-          <div class="connect-label" style="color: #60a5fa;">CONNECT</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="server-preview-card">
-      <div class="server-flag-box">&#127471;&#127477;</div>
-      <div class="server-info">
-        <div class="server-country">Japan</div>
-        <div class="server-ip">103.152.220.58:vpn2019</div>
-      </div>
-      <div class="server-speed-info">
-        <div class="server-speed-val">24.5 Mbps</div>
-        <div class="server-ping">38ms</div>
-      </div>
-      <div class="arrow-circle">&#8250;</div>
-    </div>
-
-    <div style="padding: 0 20px 10px;">
-      <div class="section-header" style="padding: 0;">
-        <span class="section-title">Top Servers</span>
-        <span class="view-all">View All (98)</span>
-      </div>
-    </div>
-
-    <div class="top-server-row">
-      <span class="top-server-flag">&#127471;&#127477;</span>
-      <div class="top-server-info">
-        <div class="top-server-name">Japan</div>
-        <div class="top-server-op">Softether Corp</div>
-      </div>
-      <div class="top-server-speed">
-        <div class="top-server-speed-val" style="color: #4ade80;">42.1 Mbps</div>
-        <div class="top-server-ping">22ms</div>
-      </div>
-      <span class="free-badge">FREE</span>
-    </div>
-
-    <div class="top-server-row">
-      <span class="top-server-flag">&#127482;&#127480;</span>
-      <div class="top-server-info">
-        <div class="top-server-name">United States</div>
-        <div class="top-server-op">DataPacket</div>
-      </div>
-      <div class="top-server-speed">
-        <div class="top-server-speed-val" style="color: #4ade80;">38.7 Mbps</div>
-        <div class="top-server-ping">45ms</div>
-      </div>
-      <span class="free-badge">FREE</span>
-    </div>
-
-    <div class="top-server-row">
-      <span class="top-server-flag">&#127472;&#127479;</span>
-      <div class="top-server-info">
-        <div class="top-server-name">South Korea</div>
-        <div class="top-server-op">Korean Telecom</div>
-      </div>
-      <div class="top-server-speed">
-        <div class="top-server-speed-val" style="color: #facc15;">8.3 Mbps</div>
-        <div class="top-server-ping">68ms</div>
-      </div>
-      <span class="free-badge">FREE</span>
-    </div>
-
-    <div class="top-server-row" style="margin-bottom: 16px;">
-      <span class="top-server-flag">&#127480;&#127468;</span>
-      <div class="top-server-info">
-        <div class="top-server-name">Germany</div>
-        <div class="top-server-op">Hetzner</div>
-      </div>
-      <div class="top-server-speed">
-        <div class="top-server-speed-val" style="color: #94a3b8;">5.1 Mbps</div>
-        <div class="top-server-ping">92ms</div>
-      </div>
-      <span class="free-badge">FREE</span>
-    </div>
-
-    <div class="tab-bar">
-      <div class="tab-item active">
-        <span class="icon">&#8962;</span>
-        <span class="label">Home</span>
-      </div>
-      <div class="tab-item" onclick="showScreen('servers')">
-        <span class="icon">&#9776;</span>
-        <span class="label">Servers</span>
-      </div>
-      <div class="tab-item" onclick="showScreen('settings')">
-        <span class="icon">&#9881;</span>
-        <span class="label">Settings</span>
-      </div>
-    </div>
+<div class="safe-top"></div>
+<div id="app"></div>
+<div class="controls">
+  <div class="ctrl-label">PREVIEW STATE (tap to switch)</div>
+  <div class="ctrl-row">
+    <button class="cb" id="btn-idle" onclick="setState('idle')">IDLE</button>
+    <button class="cb" id="btn-connecting" onclick="setState('connecting')">CONNECTING</button>
+    <button class="cb" id="btn-connected" onclick="setState('connected')">CONNECTED</button>
+    <button class="cb" id="btn-error" onclick="setState('error')">ERROR</button>
+    <button class="cb" id="btn-killswitch" onclick="setState('killswitch')">KILL SWITCH</button>
+    <button class="cb" id="btn-loading" onclick="setState('loading')">LOADING</button>
+    <button class="cb" id="btn-noservers" onclick="setState('noservers')">NO SRV</button>
   </div>
-
-  <!-- ===== SERVERS SCREEN ===== -->
-  <div id="screen-servers" class="screen">
-    <div class="status-bar">
-      <span>9:41</span>
-      <div class="status-bar-icons">
-        <span>&#9679;&#9679;&#9679;</span>
-        <span>&#128267;</span>
-      </div>
-    </div>
-
-    <div class="servers-header">
-      <span class="back-btn" onclick="showScreen('home')">&#8249;</span>
-      <span class="servers-title">Servers</span>
-      <div class="server-count-badge">
-        <span style="color: #4ade80; font-weight: 700;">5 free</span>
-        <span style="color: #4b5563;">/</span>
-        <span style="color: #94a3b8; font-weight: 600;">98</span>
-      </div>
-    </div>
-
-    <div class="search-box">
-      <span class="search-icon">&#128269;</span>
-      <input class="search-input" type="text" placeholder="Search by country, IP, or provider...">
-    </div>
-
-    <div class="chips-row">
-      <div class="chip active">All</div>
-      <div class="chip">&#127471;&#127477; Japan</div>
-      <div class="chip">&#127482;&#127480; United States</div>
-      <div class="chip">&#127472;&#127479; South Korea</div>
-      <div class="chip">&#127480;&#127468; Germany</div>
-      <div class="chip">&#127468;&#127463; Canada</div>
-      <div class="chip">&#127462;&#127482; Australia</div>
-    </div>
-
-    <div class="server-list-header">SHOWING 98 SERVERS</div>
-
-    <div class="server-list-item selected">
-      <span class="server-list-flag">&#127471;&#127477;</span>
-      <div class="server-list-info">
-        <div class="server-list-row">
-          <span class="server-list-name">Japan</span>
-          <span style="background: rgba(34,197,94,0.15); padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: 700; color: #4ade80;">FREE</span>
-        </div>
-        <div class="server-list-host">vpn140220922.opengw.net &#8226; Softether Corp</div>
-      </div>
-      <div class="server-list-stats">
-        <div class="server-list-speed" style="color: #4ade80;">42.1 Mbps</div>
-        <div class="server-list-ping" style="color: #4ade80;">22ms</div>
-      </div>
-      <div class="selected-dot"></div>
-    </div>
-
-    <div class="server-list-item">
-      <span class="server-list-flag">&#127482;&#127480;</span>
-      <div class="server-list-info">
-        <div class="server-list-row">
-          <span class="server-list-name">United States</span>
-          <span style="background: rgba(34,197,94,0.15); padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: 700; color: #4ade80;">FREE</span>
-        </div>
-        <div class="server-list-host">us1.vpngate.net &#8226; DataPacket</div>
-      </div>
-      <div class="server-list-stats">
-        <div class="server-list-speed" style="color: #4ade80;">38.7 Mbps</div>
-        <div class="server-list-ping" style="color: #4ade80;">45ms</div>
-      </div>
-    </div>
-
-    <div class="server-list-item">
-      <span class="server-list-flag">&#127472;&#127479;</span>
-      <div class="server-list-info">
-        <div class="server-list-row">
-          <span class="server-list-name">South Korea</span>
-          <span style="background: rgba(34,197,94,0.15); padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: 700; color: #4ade80;">FREE</span>
-        </div>
-        <div class="server-list-host">kr.vpngate.net &#8226; Korean Telecom</div>
-      </div>
-      <div class="server-list-stats">
-        <div class="server-list-speed" style="color: #facc15;">8.3 Mbps</div>
-        <div class="server-list-ping" style="color: #facc15;">68ms</div>
-      </div>
-    </div>
-
-    <div class="server-list-item">
-      <span class="server-list-flag">&#127480;&#127468;</span>
-      <div class="server-list-info">
-        <div class="server-list-row">
-          <span class="server-list-name">Germany</span>
-          <span style="background: rgba(34,197,94,0.15); padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: 700; color: #4ade80;">FREE</span>
-        </div>
-        <div class="server-list-host">de.vpngate.net &#8226; Hetzner</div>
-      </div>
-      <div class="server-list-stats">
-        <div class="server-list-speed" style="color: #94a3b8;">5.1 Mbps</div>
-        <div class="server-list-ping" style="color: #facc15;">92ms</div>
-      </div>
-    </div>
-
-    <div class="server-list-item">
-      <span class="server-list-flag">&#127468;&#127463;</span>
-      <div class="server-list-info">
-        <div class="server-list-row">
-          <span class="server-list-name">Canada</span>
-          <span style="background: rgba(34,197,94,0.15); padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: 700; color: #4ade80;">FREE</span>
-        </div>
-        <div class="server-list-host">ca.vpngate.net &#8226; OVH</div>
-      </div>
-      <div class="server-list-stats">
-        <div class="server-list-speed" style="color: #4ade80;">29.4 Mbps</div>
-        <div class="server-list-ping" style="color: #4ade80;">35ms</div>
-      </div>
-    </div>
-
-    <div class="tab-bar">
-      <div class="tab-item" onclick="showScreen('home')">
-        <span class="icon">&#8962;</span>
-        <span class="label">Home</span>
-      </div>
-      <div class="tab-item active">
-        <span class="icon">&#9776;</span>
-        <span class="label">Servers</span>
-      </div>
-      <div class="tab-item" onclick="showScreen('settings')">
-        <span class="icon">&#9881;</span>
-        <span class="label">Settings</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===== SETTINGS SCREEN ===== -->
-  <div id="screen-settings" class="screen">
-    <div class="status-bar">
-      <span>9:41</span>
-      <div class="status-bar-icons">
-        <span>&#9679;&#9679;&#9679;</span>
-        <span>&#128267;</span>
-      </div>
-    </div>
-
-    <div class="settings-header">Settings</div>
-
-    <div class="settings-section">
-      <div class="settings-label">DNS Server</div>
-      <div class="settings-card">
-        <div class="settings-row">
-          <span class="settings-row-label">Cloudflare</span>
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <span class="settings-row-value">1.1.1.1</span>
-            <div class="check-circle">&#10003;</div>
-          </div>
-        </div>
-        <div class="settings-row">
-          <span class="settings-row-label">Google</span>
-          <span class="settings-row-value">8.8.8.8</span>
-        </div>
-        <div class="settings-row">
-          <span class="settings-row-label">OpenDNS</span>
-          <span class="settings-row-value">208.67.222.222</span>
-        </div>
-        <div class="settings-row">
-          <span class="settings-row-label">Quad9</span>
-          <span class="settings-row-value">9.9.9.9</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="settings-section">
-      <div class="settings-label">Features</div>
-      <div class="settings-card">
-        <div class="settings-row">
-          <div style="flex: 1;">
-            <div class="settings-row-label">Kill Switch</div>
-            <div class="settings-row-sub">Block traffic if VPN drops</div>
-          </div>
-          <div class="toggle on"><div class="toggle-knob"></div></div>
-        </div>
-        <div class="settings-row">
-          <div style="flex: 1;">
-            <div class="settings-row-label">Auto-Connect</div>
-            <div class="settings-row-sub">Connect on app launch</div>
-          </div>
-          <div class="toggle off"><div class="toggle-knob"></div></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="settings-section">
-      <div class="settings-label">About</div>
-      <div class="about-card">
-        <div class="about-name">BeardVpn</div>
-        <div class="about-version">Version 1.0.0</div>
-        <div class="about-desc">Free VPN servers provided by VPN Gate Academic Experiment Project (University of Tsukuba, Japan). Servers are community-contributed and may be unavailable at times.</div>
-      </div>
-    </div>
-
-    <div class="settings-section">
-      <div class="settings-label">Developer</div>
-      <div class="about-card">
-        <div class="settings-row" style="padding: 12px 0;">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 18px;">&#9993;</span>
-            <div>
-              <div style="font-size: 14px; color: #e2e8f0;">Email</div>
-              <div style="font-size: 12px; color: #60a5fa;">damilarealao29@gmail.com</div>
-            </div>
-          </div>
-        </div>
-        <div class="settings-row" style="padding: 12px 0;">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 18px;">&#128187;</span>
-            <div>
-              <div style="font-size: 14px; color: #e2e8f0;">GitHub</div>
-              <div style="font-size: 12px; color: #60a5fa;">github.com/damilarealao</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="privacy-note">Privacy: We do not log, store, or sell any user data. All connection data is processed locally on your device.</div>
-
-    <div class="tab-bar">
-      <div class="tab-item" onclick="showScreen('home')">
-        <span class="icon">&#8962;</span>
-        <span class="label">Home</span>
-      </div>
-      <div class="tab-item" onclick="showScreen('servers')">
-        <span class="icon">&#9776;</span>
-        <span class="label">Servers</span>
-      </div>
-      <div class="tab-item active">
-        <span class="icon">&#9881;</span>
-        <span class="label">Settings</span>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-<!-- Ad Overlay (pops up when connecting) -->
-<div id="ad-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; align-items: center; justify-content: center;">
-  <div style="width: 375px; height: 720px; background: #0f172a; border-radius: 36px; overflow: hidden; position: relative; border: 3px solid #334155; display: flex; flex-direction: column;">
-    <div style="padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;">
-      <span style="font-size: 12px; color: #64748b;">Advertisement</span>
-      <div id="ad-overlay-countdown" style="background: #334155; padding: 6px 14px; border-radius: 12px; font-size: 13px; font-weight: 600; color: #94a3b8;">5s</div>
-    </div>
-    <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px;">
-      <div style="width: 100%; text-align: center;">
-        <div style="width: 728px; max-width: 100%; height: 90px; background: linear-gradient(135deg, #1e3a5f, #2563eb); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
-          <span style="color: rgba(255,255,255,0.5); font-size: 12px; letter-spacing: 2px;">ADMOB REWARDED AD</span>
-        </div>
-        <div style="font-size: 12px; color: #4b5563; margin-top: 8px;">Google AdMob &bull; Test Device Mode</div>
-      </div>
-    </div>
+  <div class="ctrl-row" style="margin-top:4px">
+    <button class="cb" id="adBtn" onclick="toggleAds()">ADS: OFF</button>
+    <button class="cb green" id="srvBtn" onclick="toggleServer()">SERVER: NONE</button>
   </div>
 </div>
-
-<div class="note-box" style="margin-top: 24px;">
-  <h3>Changes from current build</h3>
-  <ul>
-    <li><strong>Home top bar:</strong> Removed the fake blue shield icon. Just clean "BeardVpn" text.</li>
-    <li><strong>Logo:</strong> Using your actual Viking shield logo (assets/icon.png) - no background, centered.</li>
-    <li><strong>Removed:</strong> The padlock emoji, the triangle arrow, the floating overlay hack.</li>
-    <li><strong>Ad flow (rewarded):</strong> Tap CONNECT → full-screen ad pops up → 5s countdown → auto-close → VPN connects. No manual close.</li>
-    <li><strong>Settings:</strong> Added Developer section with email + GitHub. Kill Switch & Auto-Connect are now stateful.</li>
-    <li><strong>Crash fix:</strong> <code>startForeground()</code> called immediately in <code>onStartCommand()</code>.</li>
-    <li><strong>VPN permission:</strong> Uses <code>startActivityForResult</code> + <code>ActivityEventListener</code> properly.</li>
-    <li><strong>ConnectButton:</strong> Spinning loader animation now actually rotates.</li>
-    <li><strong>AdMob:</strong> Replaced Monetag with Google AdMob (rewarded + banner ads). Test device registered.</li>
-    <li><strong>HomeScreen:</strong> Shows "Loading servers..." when server list is empty during initial fetch.</li>
-    <li><strong>ServerList:</strong> Fixed double padding (removed marginHorizontal from ServerCard).</li>
-    <li><strong>useVpn:</strong> Stats interval no longer leaks on reconnect. DNS from settings is passed to native.</li>
-    <li><strong>BeardVpnService:</strong> Detailed logging for every state change.</li>
-    <li><strong>formatSpeed:</strong> Returns "—" instead of "0.0 Kbps" when not connected.</li>
-    <li><strong>State sync fix:</strong> <code>useVpn</code> queries <code>getStatus()</code> on mount AND when app comes to foreground (<code>AppState</code> listener). VPNModule receiver registered in <code>init{}</code> not on connect.</li>
-    <li><strong>Disconnect fix:</strong> Disconnect now immediately emits "disconnected" to JS (no more stuck states).</li>
-    <li><strong>Server list fix:</strong> <code>rankServers()</code> no longer filters out servers with ping=0 or speed=0. All servers now shown, sorted by score.</li>
-    <li><strong>Server loading fix:</strong> Cached servers from AsyncStorage shown instantly on launch. Fresh fetch happens in background. Bundled 10-server fallback if all fetching fails.</li>
-    <li><strong>OpenVPN client:</strong> Still uses custom SSLSocket. Traffic is NOT tunneled yet — key icon shows because TUN interface is established, but routing doesn't work. Next step: integrate <code>ics-openvpn</code> or switch to L2TP/IPSec.</li>
-  </ul>
-</div>
-
 
 <script>
-function showScreen(name, el) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('screen-' + name).classList.add('active');
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  if (el) el.classList.add('active');
-}
+const SRV=[
+  {cl:'Japan',cs:'JP',ip:'103.152.220.61',hn:'pubproxy.com',op:'VPNGate',sp:14680064,pi:42,free:1},
+  {cl:'Germany',cs:'DE',ip:'185.216.69.171',hn:'kazuhitoyamashita.com',op:'VPNGate',sp:8388608,pi:88,free:1},
+  {cl:'United States',cs:'US',ip:'216.155.139.117',hn:'us1.vpngate.net',op:'VPNGate',sp:6291456,pi:120,free:1},
+  {cl:'South Korea',cs:'KR',ip:'121.78.245.144',hn:'korea2.vpngate.net',op:'VPNGate',sp:5242880,pi:156,free:1},
+  {cl:'Singapore',cs:'SG',ip:'139.99.124.58',hn:'sg1.vpngate.net',op:'VPNGate',sp:10485760,pi:71,free:1},
+];
+const FLAGS={JP:'🇯🇵',US:'🇺🇸',KR:'🇰🇷',SG:'🇸🇬',DE:'🇩🇪',GB:'🇬🇧',FR:'🇫🇷',CA:'🇨🇦',AU:'🇦🇺',IN:'🇮🇳',NL:'🇳🇱',RU:'🇷🇺',BR:'🇧🇷',VN:'🇻🇳',TW:'🇹🇼',HK:'🇭🇰',TH:'🇹🇭'};
 
-let connected = false;
-let adShowing = false;
+function fmtSpd(b){if(!b||b===0)return'0 B';if(b>=1048576)return(b/1048576).toFixed(1)+' MB';if(b>=1024)return(b/1024).toFixed(1)+' KB';return b+' B'}
+function fmtPing(ms){return ms<=0?'—':ms+' ms'}
+function pClr(ms){return ms<50?'#4ade80':ms<150?'#facc15':'#f87171'}
+function sClr(b){const m=(b*8)/(1024*1024);return m>=100?'#4ade80':m>=10?'#facc15':'#f87171'}
 
-function toggleConnect(el) {
-  if (adShowing) return;
+let state='idle', showAds=false, hasServer=false, sel=0, bytesIn=0, bytesOut=0, speedTimer=null;
 
-  adShowing = true;
-  document.getElementById('ad-overlay').style.display = 'flex';
-  startOverlayCountdown(el);
-}
-
-let adOverlayInterval = null;
-function startOverlayCountdown(connectEl) {
-  const el = document.getElementById('ad-overlay-countdown');
-  if (!el) return;
-  let count = 5;
-  el.textContent = count + 's';
-  el.style.background = '#334155';
-  el.style.color = '#94a3b8';
-  if (adOverlayInterval) clearInterval(adOverlayInterval);
-  adOverlayInterval = setInterval(() => {
-    count--;
-    if (count <= 0) {
-      clearInterval(adOverlayInterval);
-      el.textContent = '0s';
-      setTimeout(() => {
-        document.getElementById('ad-overlay').style.display = 'none';
-        adShowing = false;
-        doConnect(connectEl);
-      }, 300);
-      return;
-    }
-    el.textContent = count + 's';
-  }, 1000);
-}
-
-function doConnect(el) {
-  connected = !connected;
-  const ring = el;
-  const icon = el.querySelector('.power-icon');
-  const label = el.querySelector('.connect-label');
-  if (connected) {
-    ring.style.borderColor = '#22c55e';
-    ring.style.background = '#052e16';
-    icon.style.color = '#4ade80';
-    label.style.color = '#4ade80';
-    label.textContent = 'CONNECTED';
-    // Update header badge
-    const badge = document.querySelector('#screen-home .status-badge');
-    if (badge) badge.innerHTML = '<div class="status-dot" style="background: #22c55e;"></div><span style="color: #22c55e;">CONNECTED</span>';
-    const sublabel = document.querySelector('#screen-home .shield-label');
-    if (sublabel) { sublabel.textContent = 'PROTECTED'; sublabel.style.color = '#22c55e'; }
-  } else {
-    ring.style.borderColor = '#2563eb';
-    ring.style.background = '#0c1a3d';
-    icon.style.color = '#60a5fa';
-    label.style.color = '#60a5fa';
-    label.textContent = 'CONNECT';
-    const badge = document.querySelector('#screen-home .status-badge');
-    if (badge) badge.innerHTML = '<div class="status-dot" style="background: #64748b;"></div><span style="color: #64748b;">NOT CONNECTED</span>';
-    const sublabel = document.querySelector('#screen-home .shield-label');
-    if (sublabel) { sublabel.textContent = 'NOT CONNECTED'; sublabel.style.color = '#64748b'; }
+function animSpeed(){
+  if(speedTimer)clearInterval(speedTimer);
+  if(state==='connected'){
+    bytesIn=0;bytesOut=0;
+    speedTimer=setInterval(()=>{
+      bytesIn+=Math.floor(Math.random()*200000)+50000;
+      bytesOut+=Math.floor(Math.random()*80000)+10000;
+      const el=document.getElementById('dl');
+      const eu=document.getElementById('ul');
+      if(el)el.textContent=fmtSpd(bytesIn);
+      if(eu)eu.textContent=fmtSpd(bytesOut);
+    },1000);
   }
 }
-</script>
 
+function render(){
+  const I=state==='connected',C=state==='connecting',E=state==='error',K=state==='killswitch',L=state==='loading',N=state==='noservers';
+  const sc=I?'#4ade80':C?'#facc15':K?'#f97316':E?'#f87171':'#64748b';
+  const sl=I?'PROTECTED':C?'CONNECTING...':K?'KILL SWITCH':E?'FAILED':'NOT CONNECTED';
+
+  // controls
+  ['idle','connecting','connected','error','killswitch','loading','noservers'].forEach(s=>{
+    const b=document.getElementById('btn-'+s);
+    if(b)b.className='cb'+(state===s?' on':'');
+  });
+
+  // connect btn
+  let btn;
+  if(C){
+    btn=`<div class="connect-btn connecting-state"><div class="spinner-wrap"></div><div class="conn-label">CONNECTING</div></div>`;
+  }else if(I){
+    btn=`<div class="idle-glow" style="background:#22c55e;animation:connGlow 3s ease-in-out infinite"></div><div class="connect-btn connected" onclick="doDisconnect()"><div class="power-icon"></div><div class="conn-label">CONNECTED</div></div>`;
+  }else{
+    btn=`<div class="idle-glow"></div><div class="connect-btn" onclick="doConnect()"><div class="power-icon"></div><div class="conn-label">CONNECT</div></div>`;
+  }
+
+  let sub=`<div class="main-status" style="color:${sc}">${sl}</div>`;
+  if(I&&hasServer){
+    const s=SRV[sel];
+    sub+=`<div class="sub-info">${s.cl} • ${s.ip}</div><div class="encrypt-text">Your traffic is encrypted</div>`;
+  }
+
+  let speed='';
+  if(I){
+    speed=`<div class="speed-cards"><div class="speed-card"><div class="speed-card-label">DOWNLOAD</div><div class="speed-card-value" id="dl">0 B</div></div><div class="speed-card"><div class="speed-card-label">UPLOAD</div><div class="speed-card-value" id="ul">0 B</div></div></div>`;
+  }
+
+  let srvSec='';
+  if(hasServer&&!N){
+    const s=SRV[sel];
+    srvSec=`<div class="section-wrap"><div class="section-header"><span class="section-title">Current Server</span><span class="section-link">Change</span></div>${card(s,true)}</div>`;
+  }else if(!N){
+    srvSec=`<div class="select-box" onclick="hasServer=true;render()"><div class="globe">🌐</div><div class="lbl">Select a Server</div><div class="sub">${SRV.length} servers available</div></div>`;
+  }
+
+  let top='';
+  if(!N&&!L){
+    top=`<div class="section-wrap"><div class="section-header"><span class="section-title">Top Servers</span><span class="section-link">View All (${SRV.length})</span></div>${SRV.map((s,i)=>card(s,hasServer&&i===sel)).join('')}</div>`;
+  }
+
+  let ks=K?`<div class="kills"><div class="kst"><span>🛡️</span><span>Kill Switch Active</span></div><div class="ksd">VPN tunnel dropped. All internet traffic is blocked to protect your IP.</div><div class="ksx" onclick="setState('idle')"><span>DISMISS &amp; RECONNECT</span></div></div>`:'';
+  let er=(E&&!K)?`<div class="err"><span>Connection failed. Try a different server.</span></div>`:'';
+  let ld=(L&&N)?`<div class="load"><div class="load-spin"></div><div class="t">Loading servers...</div><div class="s">Fetching VPN servers from the network</div></div>`:'';
+  let ns=(N&&!L)?`<div class="nosrv"><div class="t">No servers loaded</div><div class="s">Pull down to refresh and try again</div></div>`:'';
+  let ad=showAds?`<div class="ad-banner"><div class="ad-inner"><span>AdMob Banner (320×50)</span></div></div>`:'';
+
+  document.getElementById('app').innerHTML=`<div class="scroll-pad">
+    <div class="header"><span class="header-title">BeardVpn</span><div class="status-badge"><div class="status-dot" style="background:${sc}"></div><span class="status-badge-text" style="color:${sc}">${sl}</span></div></div>
+    <div class="logo-section"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%231e3a5f'/%3E%3Cstop offset='100%25' stop-color='%230f172a'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='48' fill='url(%23g)' stroke='%233b82f6' stroke-width='2'/%3E%3Ccircle cx='50' cy='50' r='38' fill='none' stroke='%233b82f6' stroke-width='1' opacity='0.3'/%3E%3Ctext x='50' y='42' text-anchor='middle' fill='%2360a5fa' font-size='16' font-weight='bold' font-family='sans-serif'%3EBEARD%3C/text%3E%3Ctext x='50' y='62' text-anchor='middle' fill='%2360a5fa' font-size='14' font-weight='bold' font-family='sans-serif'%3EVPN%3C/text%3E%3Ctext x='50' y='80' text-anchor='middle' font-size='24'%3E⚔%3C/text%3E%3C/svg%3E" alt="BeardVpn" width="96" height="96"></div>
+    <div class="connect-section"><div class="connect-wrap">${btn}</div>${sub}</div>
+    ${speed}${ks}${er}${ld}${ns}${srvSec}${top}${ad}</div>`;
+
+  if(I)animSpeed();
+}
+
+function card(s,isSel){
+  const f=FLAGS[s.cs]||'🌐';
+  return `<div class="s-card${isSel?' sel':''}" onclick="pickServer(${SRV.indexOf(s)})"><span class="flag">${f}</span><div class="info"><div class="cntry-row"><span class="cntry-name">${s.cl}</span>${s.free?'<span class="badge-free">FREE</span>':'<span class="badge-pro">PRO</span>'}</div><div class="hostline">${s.hn} • ${s.op}</div></div><div class="stats"><div class="spd" style="color:${sClr(s.sp)}">${fmtSpd(s.sp)}</div><div class="png" style="color:${pClr(s.pi)}">${fmtPing(s.pi)}</div></div>${isSel?'<div class="dot"></div>':''}</div>`;
+}
+
+function pickServer(i){sel=i;hasServer=true;render()}
+function setState(s){state=s;render()}
+function doConnect(){state='connecting';render();setTimeout(()=>{state='connected';render()},2000)}
+function doDisconnect(){state='idle';hasServer=false;render()}
+function toggleAds(){showAds=!showAds;document.getElementById('adBtn').textContent=showAds?'ADS: ON':'ADS: OFF';render()}
+function toggleServer(){hasServer=!hasServer;document.getElementById('srvBtn').textContent=hasServer?'SERVER: SET':'SERVER: NONE';render()}
+
+// Add the connected glow keyframe
+const style=document.createElement('style');
+style.textContent='@keyframes connGlow{0%,100%{opacity:0.15}50%{opacity:0.45}}';
+document.head.appendChild(style);
+
+render();
+</script>
 </body>
 </html>

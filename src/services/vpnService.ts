@@ -1,4 +1,4 @@
-import { NativeModules, NativeEventEmitter, Platform } from 'react-native';
+import { NativeModules, NativeEventEmitter } from 'react-native';
 import { VPNStatus, VPNServer } from '../types';
 
 interface VPNModuleInterface {
@@ -6,6 +6,7 @@ interface VPNModuleInterface {
   disconnect(): Promise<void>;
   getStatus(): Promise<{ status: string }>;
   getStats(): Promise<{ bytesIn: number; bytesOut: number }>;
+  isKillSwitchActive(): Promise<boolean>;
 }
 
 const { VPNModule } = NativeModules;
@@ -20,6 +21,7 @@ export const vpnService: VPNModuleInterface = VPNModule
       disconnect: () => VPNModule.disconnect(),
       getStatus: () => VPNModule.getStatus(),
       getStats: () => VPNModule.getStats(),
+      isKillSwitchActive: () => VPNModule.isKillSwitchActive(),
     }
   : {
       connect: async () => {
@@ -30,6 +32,7 @@ export const vpnService: VPNModuleInterface = VPNModule
       disconnect: async () => {},
       getStatus: async () => ({ status: 'disconnected' }),
       getStats: async () => ({ bytesIn: 0, bytesOut: 0 }),
+      isKillSwitchActive: async () => false,
     };
 
 export function onVPNStateChanged(callback: (status: VPNStatus) => void) {
@@ -37,6 +40,14 @@ export function onVPNStateChanged(callback: (status: VPNStatus) => void) {
   const subscription = vpnEmitter.addListener('onVPNStateChanged', (event: any) => {
     const status = event?.status || event;
     callback(status as VPNStatus);
+  });
+  return () => subscription.remove();
+}
+
+export function onVPNSError(callback: (message: string) => void) {
+  if (!vpnEmitter) return () => {};
+  const subscription = vpnEmitter.addListener('onVPNSError', (event: any) => {
+    callback(event?.message || 'VPN tunnel died');
   });
   return () => subscription.remove();
 }

@@ -8,6 +8,10 @@ interface ConnectButtonProps {
   onDisconnect: () => void;
 }
 
+const OUTER = 200;
+const RING = 10;
+const INNER = OUTER - RING * 2;
+
 export function ConnectButton({ status, onConnect, onDisconnect }: ConnectButtonProps) {
   const isConnected = status === 'connected';
   const isConnecting = status === 'connecting' || status === 'disconnecting';
@@ -92,11 +96,27 @@ export function ConnectButton({ status, onConnect, onDisconnect }: ConnectButton
     outputRange: ['0deg', '360deg'],
   });
 
-  const OUTER = 200;
-  const RING = 10;
-  const INNER = OUTER - RING * 2;
-  const POWER_BG = 64;
-  const POWER_R = POWER_BG / 2;
+  const PowerIcon = ({ color }: { color: string }) => (
+    <View style={{ marginTop: -2 }}>
+      <View style={{
+        width: 36,
+        height: 36,
+        borderWidth: 3.5,
+        borderColor: color,
+        borderRadius: 18,
+        borderBottomColor: 'transparent',
+        alignItems: 'center',
+      }}>
+        <View style={{
+          width: 3.5,
+          height: 16,
+          backgroundColor: color,
+          borderRadius: 2,
+          marginTop: -1,
+        }} />
+      </View>
+    </View>
+  );
 
   if (isConnecting) {
     return (
@@ -111,33 +131,25 @@ export function ConnectButton({ status, onConnect, onDisconnect }: ConnectButton
           alignItems: 'center',
           justifyContent: 'center',
         }}>
-          <View style={{
-            width: INNER,
-            height: INNER,
-            borderRadius: INNER / 2,
-            alignItems: 'center',
-            justifyContent: 'center',
+          <Animated.View style={{
+            width: 48,
+            height: 48,
+            borderRadius: 24,
+            borderWidth: 4,
+            borderColor: 'rgba(250,204,21,0.2)',
+            borderTopColor: '#facc15',
+            borderRightColor: '#facc15',
+            transform: [{ rotate: spinRotation }],
+            marginBottom: 10,
+          }} />
+          <Text style={{
+            color: '#facc15',
+            fontWeight: '800',
+            fontSize: 13,
+            letterSpacing: 2,
           }}>
-            <Animated.View style={{
-              width: 48,
-              height: 48,
-              borderRadius: 24,
-              borderWidth: 4,
-              borderColor: 'rgba(250,204,21,0.2)',
-              borderTopColor: '#facc15',
-              borderRightColor: '#facc15',
-              transform: [{ rotate: spinRotation }],
-              marginBottom: 10,
-            }} />
-            <Text style={{
-              color: '#facc15',
-              fontWeight: '800',
-              fontSize: 13,
-              letterSpacing: 2,
-            }}>
-              {status === 'connecting' ? 'CONNECTING' : 'DISCONNECTING'}
-            </Text>
-          </View>
+            {status === 'connecting' ? 'CONNECTING' : 'DISCONNECTING'}
+          </Text>
         </View>
       </View>
     );
@@ -155,72 +167,36 @@ export function ConnectButton({ status, onConnect, onDisconnect }: ConnectButton
           opacity: activeGlowOpacity,
           transform: [{ scale: pulseAnim }],
         }} />
-        <Animated.View style={{
-          width: OUTER,
-          height: OUTER,
-          borderRadius: OUTER / 2,
-          borderWidth: 3,
-          borderColor: '#22c55e',
-          backgroundColor: '#052e16',
-          alignItems: 'center',
-          justifyContent: 'center',
-          transform: [{ scale: pulseAnim }],
-          shadowColor: '#22c55e',
-          shadowOffset: { width: 0, height: 0 },
-          shadowOpacity: 0.6,
-          shadowRadius: 24,
-          elevation: 20,
-        }}>
-          <View style={{
-            width: INNER,
-            height: INNER,
-            borderRadius: INNER / 2,
+        <Pressable
+          onPress={handlePress}
+          style={({ pressed }) => ({
+            width: OUTER,
+            height: OUTER,
+            borderRadius: OUTER / 2,
+            borderWidth: 3,
+            borderColor: '#22c55e',
+            backgroundColor: '#052e16',
             alignItems: 'center',
             justifyContent: 'center',
+            transform: [{ scale: pressed ? 0.95 : 1 }],
+            shadowColor: '#22c55e',
+            shadowOffset: { width: 0, height: 0 },
+            shadowOpacity: 0.6,
+            shadowRadius: 24,
+            elevation: 20,
+          })}
+        >
+          <PowerIcon color="#4ade80" />
+          <Text style={{
+            color: '#4ade80',
+            fontWeight: '800',
+            fontSize: 14,
+            marginTop: 10,
+            letterSpacing: 2,
           }}>
-            <Pressable
-              onPress={handlePress}
-              style={({ pressed }) => ({
-                width: POWER_BG,
-                height: POWER_BG,
-                borderRadius: POWER_R,
-                backgroundColor: 'rgba(74,222,128,0.15)',
-                alignItems: 'center',
-                justifyContent: 'center',
-                opacity: pressed ? 0.7 : 1,
-              })}
-            >
-              <View style={{ marginTop: -2 }}>
-                <View style={{
-                  width: 36,
-                  height: 36,
-                  borderWidth: 3.5,
-                  borderColor: '#4ade80',
-                  borderRadius: 18,
-                  borderBottomColor: 'transparent',
-                  alignItems: 'center',
-                }}>
-                  <View style={{
-                    width: 3.5,
-                    height: 16,
-                    backgroundColor: '#4ade80',
-                    borderRadius: 2,
-                    marginTop: -1,
-                  }} />
-                </View>
-              </View>
-            </Pressable>
-            <Text style={{
-              color: '#4ade80',
-              fontWeight: '800',
-              fontSize: 14,
-              marginTop: 10,
-              letterSpacing: 2,
-            }}>
-              CONNECTED
-            </Text>
-          </View>
-        </Animated.View>
+            CONNECTED
+          </Text>
+        </Pressable>
       </View>
     );
   }
@@ -235,71 +211,36 @@ export function ConnectButton({ status, onConnect, onDisconnect }: ConnectButton
         backgroundColor: '#2563eb',
         opacity: activeGlowOpacity,
       }} />
-      <View style={{
-        width: OUTER,
-        height: OUTER,
-        borderRadius: OUTER / 2,
-        borderWidth: 3,
-        borderColor: '#3b82f6',
-        backgroundColor: '#0c1a3d',
-        alignItems: 'center',
-        justifyContent: 'center',
-        shadowColor: '#3b82f6',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.3,
-        shadowRadius: 16,
-        elevation: 12,
-      }}>
-        <View style={{
-          width: INNER,
-          height: INNER,
-          borderRadius: INNER / 2,
+      <Pressable
+        onPress={handlePress}
+        style={({ pressed }) => ({
+          width: OUTER,
+          height: OUTER,
+          borderRadius: OUTER / 2,
+          borderWidth: 3,
+          borderColor: '#3b82f6',
+          backgroundColor: '#0c1a3d',
           alignItems: 'center',
           justifyContent: 'center',
+          transform: [{ scale: pressed ? 0.95 : 1 }],
+          shadowColor: '#3b82f6',
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 0.3,
+          shadowRadius: 16,
+          elevation: 12,
+        })}
+      >
+        <PowerIcon color="#60a5fa" />
+        <Text style={{
+          color: '#60a5fa',
+          fontWeight: '800',
+          fontSize: 14,
+          marginTop: 10,
+          letterSpacing: 2,
         }}>
-          <Pressable
-            onPress={handlePress}
-            style={({ pressed }) => ({
-              width: POWER_BG,
-              height: POWER_BG,
-              borderRadius: POWER_R,
-              backgroundColor: 'rgba(96,165,250,0.1)',
-              alignItems: 'center',
-              justifyContent: 'center',
-              opacity: pressed ? 0.7 : 1,
-            })}
-          >
-            <View style={{ marginTop: -2 }}>
-              <View style={{
-                width: 36,
-                height: 36,
-                borderWidth: 3.5,
-                borderColor: '#60a5fa',
-                borderRadius: 18,
-                borderBottomColor: 'transparent',
-                alignItems: 'center',
-              }}>
-                <View style={{
-                  width: 3.5,
-                  height: 16,
-                  backgroundColor: '#60a5fa',
-                  borderRadius: 2,
-                  marginTop: -1,
-                }} />
-              </View>
-            </View>
-          </Pressable>
-          <Text style={{
-            color: '#60a5fa',
-            fontWeight: '800',
-            fontSize: 14,
-            marginTop: 10,
-            letterSpacing: 2,
-          }}>
-            CONNECT
-          </Text>
-        </View>
-      </View>
+          CONNECT
+        </Text>
+      </Pressable>
     </View>
   );
 }

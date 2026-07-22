@@ -12,3 +12,10 @@
 -keep class com.facebook.react.turbomodule.** { *; }
 
 # Add any project specific keep options here:
+-keep class com.beardvpn.app.VPNModule { *; }
+-keep class com.beardvpn.app.VPNPackage { *; }
+-keep class com.beardvpn.app.BeardVpnService { *; }
+-keep class com.beardvpn.app.OpenVpnClient { *; }
+-keep class com.beardvpn.app.OvpnConfig { *; }
+-keep class com.google.android.gms.ads.** { *; }
+-keep class com.facebook.react.bridge.** { *; }

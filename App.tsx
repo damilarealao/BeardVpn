@@ -7,6 +7,12 @@ import { useVpn } from './src/hooks/useVpn';
 import { storageService } from './src/services/storageService';
 import { RewardedAdFlow } from './src/components/RewardedAdFlow';
 import { initializeAds } from './src/services/adService';
+import { VPNServer } from './src/types';
+
+type PendingAction =
+  | { type: 'connect'; server: VPNServer }
+  | { type: 'switch'; server: VPNServer }
+  | null;
 
 export default function App() {
   const {
@@ -27,8 +33,7 @@ export default function App() {
 
   const [dns, setDns] = useState('1.1.1.1');
   const [showAd, setShowAd] = useState(false);
-  const pendingConnect = useRef(false);
-  const lastAdTime = useRef(0);
+  const pendingAction = useRef<PendingAction>(null);
 
   useEffect(() => {
     storageService.getDNS().then(setDns);
@@ -40,38 +45,65 @@ export default function App() {
     await storageService.setDNS(newDns);
   };
 
-  const shouldShowAd = () => {
-    if (premiumUnlocked) return false;
-    const now = Date.now();
-    const elapsed = (now - lastAdTime.current) / 1000;
-    if (elapsed < 60) return false;
-    return true;
-  };
+  const showAdFor = useCallback((action: PendingAction) => {
+    pendingAction.current = action;
+    setShowAd(true);
+  }, []);
 
-  const handleConnect = () => {
-    if (!selectedServer) return;
+  const handleConnect = useCallback(() => {
+    let server = selectedServer;
+    if (!server && servers.length > 0) {
+      server = servers.find((s) => s.isFree) || servers[0];
+    }
+    if (!server) return;
 
-    if (shouldShowAd()) {
-      pendingConnect.current = true;
-      setShowAd(true);
+    const isConnected = connection.status === 'connected';
+    showAdFor({ type: isConnected ? 'switch' : 'connect', server });
+  }, [selectedServer, servers, connection.status, showAdFor]);
+
+  const handleServerSelect = useCallback((server: VPNServer) => {
+    const isConnected = connection.status === 'connected';
+    const isConnecting = connection.status === 'connecting';
+    if (isConnected || isConnecting) {
+      showAdFor({ type: 'switch', server });
     } else {
-      connect(selectedServer);
+      showAdFor({ type: 'connect', server });
     }
-  };
+  }, [connection.status, showAdFor]);
 
-  const handleAdClose = useCallback(() => {
+  const handleAdClose = useCallback((rewardGranted: boolean) => {
     setShowAd(false);
-    lastAdTime.current = Date.now();
-    if (pendingConnect.current && selectedServer) {
-      pendingConnect.current = false;
-      connect(selectedServer);
-      unlockPremium(30 * 60 * 1000);
+
+    const action = pendingAction.current;
+    pendingAction.current = null;
+
+    if (!action) return;
+
+    const doConnect = () => {
+      selectServer(action.server);
+      connect(action.server);
+      if (rewardGranted) {
+        unlockPremium(30 * 60 * 1000);
+      }
+    };
+
+    if (action.type === 'switch') {
+      const wasConnected = connection.status === 'connected';
+      const wasConnecting = connection.status === 'connecting';
+      if (wasConnected || wasConnecting) {
+        disconnect();
+        setTimeout(doConnect, 600);
+      } else {
+        doConnect();
+      }
+    } else {
+      doConnect();
     }
-  }, [selectedServer, connect, unlockPremium]);
+  }, [connection.status, connect, disconnect, selectServer, unlockPremium]);
 
   useEffect(() => {
     if (connection.status === 'connected') {
-      pendingConnect.current = false;
+      pendingAction.current = null;
     }
   }, [connection.status]);
 
@@ -81,7 +113,7 @@ export default function App() {
         connection={connection}
         servers={servers}
         selectedServer={selectedServer}
-        onSelectServer={selectServer}
+        onSelectServer={handleServerSelect}
         onConnect={handleConnect}
         onDisconnect={disconnect}
         isLoading={isLoading}

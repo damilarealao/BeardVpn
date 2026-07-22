@@ -49,7 +49,7 @@ export function ServerCard({ server, isSelected, onSelect }: ServerCardProps) {
           )}
         </View>
         <Text style={{ color: '#64748b', fontSize: 12, marginTop: 3 }}>
-          {server.hostName} \u2022 {server.operator || 'Unknown'}
+          {server.hostName} • {server.operator || 'Unknown'}
         </Text>
       </View>
 

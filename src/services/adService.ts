@@ -22,8 +22,8 @@ export async function initializeAds(): Promise<boolean> {
     await MobileAds().setRequestConfiguration({
       maxAdContentRating: MaxAdContentRating.G,
       testDeviceIdentifiers: __DEV__
-        ? ['EMULATOR']
-        : ['c0f89e7f-e292-4738-a2b8-a84fa27d0657'],
+        ? ['EMULATOR', 'c0f89e7f-e292-4738-a2b8-a84fa27d0657']
+        : [],
     });
 
     initialized = true;
@@ -100,43 +100,10 @@ export function loadRewardedAd(callbacks: {
 
 export function showRewardedAd(): boolean {
   if (!rewardedInstance) return false;
-  rewardedInstance.show();
-  return true;
-}
-
-export function isRewardedLoaded(): boolean {
-  return rewardedInstance != null;
-}
-
-let interstitialInstance: InterstitialAd | null = null;
-
-export function loadInterstitialAd(onClosed?: () => void) {
-  const adUnitId = __DEV__
-    ? TestIds.INTERSTITIAL
-    : AD_CONFIG.admob.interstitialAdUnitId;
-
-  interstitialInstance = InterstitialAd.createForAdRequest(adUnitId, {
-    requestNonPersonalizedAdsOnly: false,
-  });
-
-  interstitialInstance.addAdEventListener(
-    AdEventType.LOADED,
-    () => {}
-  );
-
-  interstitialInstance.addAdEventListener(
-    AdEventType.CLOSED,
-    () => {
-      onClosed?.();
-      loadInterstitialAd(onClosed);
-    }
-  );
-
-  interstitialInstance.load();
-}
-
-export function showInterstitialAd(): boolean {
-  if (!interstitialInstance) return false;
-  interstitialInstance.show();
-  return true;
+  try {
+    rewardedInstance.show();
+    return true;
+  } catch {
+    return false;
+  }
 }

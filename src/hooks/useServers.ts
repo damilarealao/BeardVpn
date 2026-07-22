@@ -43,11 +43,15 @@ export function useServers() {
         const fresh = await fetchServers();
         setServers(fresh);
         const savedIp = await storageService.getSelectedServer();
+        let foundSaved = false;
         if (savedIp) {
           const found = fresh.find((s) => s.ip === savedIp);
-          if (found) setSelectedServer(found);
+          if (found) {
+            setSelectedServer(found);
+            foundSaved = true;
+          }
         }
-        if (!selectedServer) {
+        if (!foundSaved) {
           const firstFree = fresh.find((s) => s.isFree);
           if (firstFree) {
             setSelectedServer(firstFree);

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import { VPNStatus, VPNConnectionState, VPNServer } from '../types';
-import { vpnService, onVPNStateChanged } from '../services/vpnService';
+import { vpnService, onVPNStateChanged, onVPNSError } from '../services/vpnService';
 import { storageService } from '../services/storageService';
 
 const initialState: VPNConnectionState = {
@@ -10,6 +10,7 @@ const initialState: VPNConnectionState = {
   connectedAt: null,
   bytesIn: 0,
   bytesOut: 0,
+  killSwitchMessage: null,
 };
 
 export function useVpn() {
@@ -44,6 +45,7 @@ export function useVpn() {
               status: s,
               connectedAt: Date.now(),
               connectedServer: connectedServerRef.current,
+              killSwitchMessage: null,
             };
           }
           return { ...prev, status: s };
@@ -66,7 +68,7 @@ export function useVpn() {
       }
     }).catch(() => {});
 
-    const unsub = onVPNStateChanged((status: VPNStatus) => {
+    const unsubState = onVPNStateChanged((status: VPNStatus) => {
       setConnection((prev) => {
         if (status === 'disconnected') {
           clearStatsInterval();
@@ -79,9 +81,20 @@ export function useVpn() {
             status,
             connectedAt: Date.now(),
             connectedServer: connectedServerRef.current,
+            killSwitchMessage: null,
           };
         }
         return { ...prev, status };
+      });
+    });
+
+    const unsubError = onVPNSError((message: string) => {
+      clearStatsInterval();
+      connectedServerRef.current = null;
+      setConnection({
+        ...initialState,
+        status: 'error',
+        killSwitchMessage: message,
       });
     });
 
@@ -99,7 +112,8 @@ export function useVpn() {
     });
 
     return () => {
-      unsub();
+      unsubState();
+      unsubError();
       appSub.remove();
       clearStatsInterval();
     };
@@ -117,6 +131,7 @@ export function useVpn() {
           ...prev,
           status: 'connecting',
           connectedServer: server,
+          killSwitchMessage: null,
         }));
 
         const dns = await storageService.getDNS();

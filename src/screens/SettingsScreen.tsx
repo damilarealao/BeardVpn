@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Switch, Pressable, ScrollView, Linking } from 'react-native';
+import { View, Text, Pressable, ScrollView, Linking } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface SettingsScreenProps {
@@ -16,12 +16,10 @@ const DNS_OPTIONS = [
 
 export function SettingsScreen({ dns, onDNSSet }: SettingsScreenProps) {
   const insets = useSafeAreaInsets();
-  const [killSwitch, setKillSwitch] = React.useState(true);
-  const [autoConnect, setAutoConnect] = React.useState(false);
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: '#0f172a', paddingTop: insets.top }}
+      style={{ flex: 1, backgroundColor: '#0a0f1e', paddingTop: insets.top }}
       contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 20 }}
     >
       <Text style={{ color: '#f1f5f9', fontSize: 26, fontWeight: 'bold', marginBottom: 24 }}>Settings</Text>
@@ -61,33 +59,19 @@ export function SettingsScreen({ dns, onDNSSet }: SettingsScreenProps) {
 
       <View style={{ marginBottom: 24 }}>
         <Text style={{ color: '#64748b', fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>
-          Features
+          Security
         </Text>
-        <View style={{ backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155', borderRadius: 14, overflow: 'hidden' }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#334155' }}>
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: '#e2e8f0', fontSize: 15 }}>Kill Switch</Text>
-              <Text style={{ color: '#64748b', fontSize: 12, marginTop: 2 }}>Block traffic if VPN drops</Text>
+        <View style={{ backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155', borderRadius: 14, padding: 16 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+            <Text style={{ fontSize: 16 }}>{'\u{1F6E1}'}</Text>
+            <Text style={{ color: '#e2e8f0', fontSize: 15, fontWeight: '600' }}>Kill Switch</Text>
+            <View style={{ backgroundColor: '#166534', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 }}>
+              <Text style={{ color: '#4ade80', fontSize: 10, fontWeight: '700' }}>ALWAYS ON</Text>
             </View>
-            <Switch
-              value={killSwitch}
-              onValueChange={setKillSwitch}
-              trackColor={{ false: '#374151', true: '#1d4ed8' }}
-              thumbColor={killSwitch ? '#60a5fa' : '#9ca3af'}
-            />
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14 }}>
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: '#e2e8f0', fontSize: 15 }}>Auto-Connect</Text>
-              <Text style={{ color: '#64748b', fontSize: 12, marginTop: 2 }}>Connect on app launch</Text>
-            </View>
-            <Switch
-              value={autoConnect}
-              onValueChange={setAutoConnect}
-              trackColor={{ false: '#374151', true: '#1d4ed8' }}
-              thumbColor={autoConnect ? '#60a5fa' : '#9ca3af'}
-            />
-          </View>
+          <Text style={{ color: '#64748b', fontSize: 12, lineHeight: 18 }}>
+            All traffic is blocked if the VPN tunnel drops unexpectedly. This protects your real IP from being exposed.
+          </Text>
         </View>
       </View>
 

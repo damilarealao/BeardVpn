@@ -153,17 +153,17 @@ export async function fetchServers(): Promise<VPNServer[]> {
   }
 }
 
-export function formatSpeed(bytesPerSec: number): string {
-  if (bytesPerSec <= 0) return '—';
-  const mbps = (bytesPerSec * 8) / (1024 * 1024);
-  if (mbps >= 1000) return `${(mbps / 1000).toFixed(1)} Gbps`;
-  if (mbps >= 1) return `${mbps.toFixed(1)} Mbps`;
-  return `${(mbps * 1000).toFixed(0)} Kbps`;
+export function formatSpeed(bytes: number): string {
+  if (bytes <= 0) return '0 B';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 }
 
 export function formatPing(ping: number): string {
-  if (ping <= 0) return '—';
-  return `${ping}ms`;
+  if (ping <= 0) return '\u2014';
+  return `${ping} ms`;
 }
 
 export function getUniqueCountries(servers: VPNServer[]): string[] {

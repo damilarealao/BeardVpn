@@ -8,6 +8,5 @@ export const AD_CONFIG = {
     interstitialAdUnitId: 'ca-app-pub-8194810458712293/3494490040',
   },
 
-  cooldownSeconds: 60,
   closeDelaySeconds: 5,
 };
