@@ -1,12 +1,11 @@
 import { NativeModules, NativeEventEmitter } from 'react-native';
-import { VPNStatus, VPNServer } from '../types';
+import { VPNStatus } from '../types';
 
 interface VPNModuleInterface {
   connect(config: { serverIp: string; ovpnConfig: string; dns: string }): Promise<void>;
   disconnect(): Promise<void>;
   getStatus(): Promise<{ status: string }>;
   getStats(): Promise<{ bytesIn: number; bytesOut: number }>;
-  isKillSwitchActive(): Promise<boolean>;
 }
 
 const { VPNModule } = NativeModules;
@@ -21,7 +20,6 @@ export const vpnService: VPNModuleInterface = VPNModule
       disconnect: () => VPNModule.disconnect(),
       getStatus: () => VPNModule.getStatus(),
       getStats: () => VPNModule.getStats(),
-      isKillSwitchActive: () => VPNModule.isKillSwitchActive(),
     }
   : {
       connect: async () => {
@@ -32,7 +30,6 @@ export const vpnService: VPNModuleInterface = VPNModule
       disconnect: async () => {},
       getStatus: async () => ({ status: 'disconnected' }),
       getStats: async () => ({ bytesIn: 0, bytesOut: 0 }),
-      isKillSwitchActive: async () => false,
     };
 
 export function onVPNStateChanged(callback: (status: VPNStatus) => void) {

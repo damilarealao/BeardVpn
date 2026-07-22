@@ -50,10 +50,9 @@ export function HomeScreen({
   const isConnected = connection.status === 'connected';
   const isConnecting = connection.status === 'connecting' || connection.status === 'disconnecting';
   const isError = connection.status === 'error';
-  const isKillSwitch = isError && !!connection.killSwitchMessage;
 
-  const statusColor = isConnected ? '#4ade80' : isConnecting ? '#facc15' : isKillSwitch ? '#f97316' : isError ? '#f87171' : '#64748b';
-  const statusLabel = isConnected ? 'PROTECTED' : isConnecting ? 'CONNECTING...' : isKillSwitch ? 'KILL SWITCH' : isError ? 'FAILED' : 'NOT CONNECTED';
+  const statusColor = isConnected ? '#4ade80' : isConnecting ? '#facc15' : isError ? '#f87171' : '#64748b';
+  const statusLabel = isConnected ? 'PROTECTED' : isConnecting ? 'CONNECTING...' : isError ? 'FAILED' : 'NOT CONNECTED';
 
   const totalCount = servers.length;
 
@@ -83,7 +82,7 @@ export function HomeScreen({
     <View style={{ flex: 1, backgroundColor: '#0a0f1e' }}>
       <StatusBar style="light" />
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + 20 }}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + 90 }}
         keyboardShouldPersistTaps="handled"
         refreshControl={
           <RefreshControl
@@ -262,48 +261,7 @@ export function HomeScreen({
           </View>
         )}
 
-        {isKillSwitch && (
-          <View style={{
-            marginHorizontal: 16,
-            backgroundColor: 'rgba(154,52,18,0.25)',
-            borderWidth: 1,
-            borderColor: 'rgba(249,115,22,0.5)',
-            borderRadius: 12,
-            padding: 14,
-          }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
-              <Text style={{ fontSize: 16, marginRight: 8 }}>{'\u{1F6E1}'}</Text>
-              <Text style={{ color: '#f97316', fontSize: 14, fontWeight: '700' }}>
-                Kill Switch Active
-              </Text>
-            </View>
-            <Text style={{ color: '#fb923c', fontSize: 12, lineHeight: 18 }}>
-              VPN tunnel dropped. All internet traffic is blocked to protect your IP.
-            </Text>
-            <Text style={{ color: '#7c2d12', fontSize: 11, marginTop: 6 }}>
-              {connection.killSwitchMessage}
-            </Text>
-            <Pressable
-              onPress={onDisconnect}
-              style={({ pressed }) => ({
-                marginTop: 10,
-                backgroundColor: 'rgba(249,115,22,0.2)',
-                borderWidth: 1,
-                borderColor: '#f97316',
-                borderRadius: 8,
-                paddingVertical: 8,
-                alignItems: 'center',
-                opacity: pressed ? 0.7 : 1,
-              })}
-            >
-              <Text style={{ color: '#f97316', fontSize: 12, fontWeight: '700', letterSpacing: 1 }}>
-                DISMISS {'&'} RECONNECT
-              </Text>
-            </Pressable>
-          </View>
-        )}
-
-        {isError && !isKillSwitch && (
+        {isError && (
           <View style={{
             marginHorizontal: 16,
             backgroundColor: 'rgba(127,29,29,0.2)',

@@ -218,7 +218,7 @@ export function ServerListScreen({
         <FlatList
           data={filteredServers}
           keyExtractor={(item, i) => item.ip + '-' + i}
-          contentContainerStyle={{ paddingBottom: insets.bottom + 20, paddingHorizontal: 16 }}
+          contentContainerStyle={{ paddingBottom: insets.bottom + 90, paddingHorizontal: 16 }}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}

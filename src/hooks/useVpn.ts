@@ -10,7 +10,6 @@ const initialState: VPNConnectionState = {
   connectedAt: null,
   bytesIn: 0,
   bytesOut: 0,
-  killSwitchMessage: null,
 };
 
 export function useVpn() {
@@ -45,7 +44,6 @@ export function useVpn() {
               status: s,
               connectedAt: Date.now(),
               connectedServer: connectedServerRef.current,
-              killSwitchMessage: null,
             };
           }
           return { ...prev, status: s };
@@ -81,20 +79,18 @@ export function useVpn() {
             status,
             connectedAt: Date.now(),
             connectedServer: connectedServerRef.current,
-            killSwitchMessage: null,
           };
         }
         return { ...prev, status };
       });
     });
 
-    const unsubError = onVPNSError((message: string) => {
+    const unsubError = onVPNSError(() => {
       clearStatsInterval();
       connectedServerRef.current = null;
       setConnection({
         ...initialState,
         status: 'error',
-        killSwitchMessage: message,
       });
     });
 
@@ -131,7 +127,6 @@ export function useVpn() {
           ...prev,
           status: 'connecting',
           connectedServer: server,
-          killSwitchMessage: null,
         }));
 
         const dns = await storageService.getDNS();

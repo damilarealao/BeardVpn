@@ -25,7 +25,6 @@ export interface VPNConnectionState {
   connectedAt: number | null;
   bytesIn: number;
   bytesOut: number;
-  killSwitchMessage: string | null;
 }
 
 export interface AppState {

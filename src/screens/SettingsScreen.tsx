@@ -57,23 +57,7 @@ export function SettingsScreen({ dns, onDNSSet }: SettingsScreenProps) {
         </View>
       </View>
 
-      <View style={{ marginBottom: 24 }}>
-        <Text style={{ color: '#64748b', fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>
-          Security
-        </Text>
-        <View style={{ backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155', borderRadius: 14, padding: 16 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-            <Text style={{ fontSize: 16 }}>{'\u{1F6E1}'}</Text>
-            <Text style={{ color: '#e2e8f0', fontSize: 15, fontWeight: '600' }}>Kill Switch</Text>
-            <View style={{ backgroundColor: '#166534', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 }}>
-              <Text style={{ color: '#4ade80', fontSize: 10, fontWeight: '700' }}>ALWAYS ON</Text>
-            </View>
-          </View>
-          <Text style={{ color: '#64748b', fontSize: 12, lineHeight: 18 }}>
-            All traffic is blocked if the VPN tunnel drops unexpectedly. This protects your real IP from being exposed.
-          </Text>
-        </View>
-      </View>
+
 
       <View style={{ marginBottom: 24 }}>
         <Text style={{ color: '#64748b', fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>
