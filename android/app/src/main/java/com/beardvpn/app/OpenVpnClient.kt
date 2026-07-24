@@ -46,10 +46,12 @@ class OpenVpnClient(
     companion object {
         private const val TAG = "OpenVpnClient"
         private const val OPENVPN_MTU = 1500
-        private const val P_DATA_V1 = 0x30
-        private const val P_ACK_V1 = 0x28
-        private const val P_CONTROL_HARD_RESET_CLIENT_V2 = 0x08
-        private const val P_PUSH_REQUEST = 0x38
+        // Correct OpenVPN wire protocol opcodes (shifted right by 3)
+        private const val P_DATA_V1 = 6
+        private const val P_DATA_V2 = 9
+        private const val P_ACK_V1 = 5
+        private const val P_CONTROL_HARD_RESET_CLIENT_V2 = 7
+        private const val P_CONTROL_HARD_RESET_SERVER_V2 = 8
         private const val SOCKET_TIMEOUT_MS = 10000
     }
 
@@ -192,14 +194,16 @@ class OpenVpnClient(
                 }
 
                 if (read >= 1) {
-                    val opcode = (buffer[0].toInt() and 0xFF) shr 3
+                    val rawByte = buffer[0].toInt() and 0xFF
+                    val opcode = rawByte shr 3
 
                     when (opcode) {
-                        P_DATA_V1 -> {
-                            if (read >= 5) {
-                                val payloadSize = read - 5
-                                if (payloadSize > 0 && payloadSize < OPENVPN_MTU) {
-                                    tunOutput?.write(buffer, 5, payloadSize)
+                        P_DATA_V1, P_DATA_V2 -> {
+                            val headerLen = if (opcode == P_DATA_V2) 8 else 5
+                            if (read >= headerLen) {
+                                val payloadSize = read - headerLen
+                                if (payloadSize > 0 && payloadSize <= OPENVPN_MTU) {
+                                    tunOutput?.write(buffer, headerLen, payloadSize)
                                     tunOutput?.flush()
                                     bytesIn.addAndGet(payloadSize.toLong())
                                 }
@@ -208,11 +212,16 @@ class OpenVpnClient(
                         P_ACK_V1 -> {
                             Log.d(TAG, "Received ACK")
                         }
-                        P_CONTROL_HARD_RESET_CLIENT_V2, P_PUSH_REQUEST -> {
-                            Log.d(TAG, "Server control: opcode=$opcode")
+                        P_CONTROL_HARD_RESET_CLIENT_V2, P_CONTROL_HARD_RESET_SERVER_V2 -> {
+                            Log.d(TAG, "Server control reset opcode=$opcode")
                         }
                         else -> {
-                            Log.d(TAG, "Unknown opcode: $opcode")
+                            // Raw IP packet fallback
+                            if (rawByte == 0x45 || rawByte == 0x60) {
+                                tunOutput?.write(buffer, 0, read)
+                                tunOutput?.flush()
+                                bytesIn.addAndGet(read.toLong())
+                            }
                         }
                     }
                 }
@@ -239,7 +248,11 @@ class OpenVpnClient(
                 }
 
                 val output = sslOutput ?: break
-                output.write(P_DATA_V1)
+                // OpenVPN P_DATA_V1 header byte = (6 << 3) = 0x30
+                output.write(0x30)
+                output.write(0)
+                output.write(0)
+                output.write(0)
                 output.write(0)
                 output.write(buffer.array(), 0, read)
                 output.flush()
