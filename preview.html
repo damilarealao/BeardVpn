@@ -3,138 +3,105 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>BeardVpn Preview</title>
+<title>BeardVpn Live Preview</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{background:#0a0f1e;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;color:#f1f5f9;max-width:400px;margin:0 auto;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
-.safe-top{height:44px}
-.header{display:flex;align-items:center;justify-content:space-between;padding:8px 20px}
-.header-title{font-size:22px;font-weight:800;letter-spacing:0.3px}
-.status-badge{display:inline-flex;align-items:center;gap:6px;background:#1e293b;padding:5px 10px;border-radius:20px}
-.status-dot{width:6px;height:6px;border-radius:3px}
-.status-badge-text{font-size:10px;font-weight:700;letter-spacing:1px}
-.logo-section{text-align:center;padding:16px 0 8px}
-.logo-section img{width:96px;height:96px}
+body{background:#090d16;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter',sans-serif;color:#f8fafc;max-width:414px;margin:0 auto;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
 
-/* Connect */
-.connect-section{text-align:center;padding:20px 0;position:relative}
-.connect-wrap{position:relative;display:inline-block}
-.idle-glow{position:absolute;top:-10px;left:-10px;width:220px;height:220px;border-radius:50%;background:#2563eb;opacity:0;animation:idleGlow 5s ease-in-out infinite;pointer-events:none;z-index:1}
-@keyframes idleGlow{0%,100%{opacity:0}50%{opacity:0.15}}
-.connect-btn{width:200px;height:200px;border-radius:50%;border:3px solid #3b82f6;background:#0c1a3d;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:transform 0.15s;position:relative;z-index:2}
-.connect-btn:active{transform:scale(0.95)}
-.connect-btn.connected{border-color:#22c55e;background:#052e16;animation:connPulse 3s ease-in-out infinite}
-@keyframes connPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
-.connect-btn.connecting-state{border-color:#b45309;background:#1c1917;cursor:default}
+/* Header */
+.header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-logo{width:32px;height:32px;border-radius:8px;background:#131b2e;display:flex;align-items:center;justify-content:center;font-size:20px}
+.header-title{font-size:20px;font-weight:800;letter-spacing:0.5px;color:#f8fafc}
+.status-pill{display:inline-flex;align-items:center;gap:6px;background:#131b2e;border:1px solid #1e293b;padding:6px 12px;border-radius:20px}
+.status-pill.connected{background:rgba(34,197,94,0.12);border-color:rgba(34,197,94,0.3)}
+.status-pill-dot{width:7px;height:7px;border-radius:3.5px;background:#64748b}
+.status-pill.connected .status-pill-dot{background:#4ade80}
+.status-pill.connecting .status-pill-dot{background:#facc15}
+.status-pill-text{font-size:11px;font-weight:800;letter-spacing:1px;color:#64748b}
+.status-pill.connected .status-pill-text{color:#4ade80}
+.status-pill.connecting .status-pill-text{color:#facc15}
 
-.power-icon{width:36px;height:36px;border:3.5px solid #60a5fa;border-radius:50%;border-bottom-color:transparent;position:relative}
-.power-icon::after{content:'';position:absolute;left:50%;top:-4px;transform:translateX(-50%);width:3.5px;height:16px;background:#60a5fa;border-radius:2px}
-.connected .power-icon{border-color:#4ade80}
-.connected .power-icon::after{background:#4ade80}
-.connecting-state .power-icon{display:none}
+/* Hero Section */
+.hero{text-align:center;padding:16px 0 20px}
 
-.spinner-wrap{width:48px;height:48px;border:4px solid rgba(250,204,21,0.2);border-top-color:#facc15;border-right-color:#facc15;border-radius:50%;animation:spin 1.2s linear infinite;margin-bottom:10px}
+/* Button Wrapper - 100% Centered Container */
+.btn-wrap{position:relative;width:190px;height:190px;margin:0 auto;display:flex;align-items:center;justify-content:center}
+
+.aura-ring{position:absolute;top:0;left:0;width:190px;height:190px;border-radius:50%;background:#3b82f6;opacity:0.12;pointer-events:none}
+.aura-ring.connected{background:#22c55e;opacity:0.25;animation:pulseAura 2s ease-in-out infinite}
+@keyframes pulseAura{0%,100%{transform:scale(1);opacity:0.2}50%{transform:scale(1.1);opacity:0.45}}
+
+.btn-circle{width:150px;height:150px;border-radius:50%;border:4px solid #3b82f6;background:#0b1329;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:transform 0.15s;position:relative;z-index:2;box-shadow:0 0 24px rgba(59,130,246,0.35)}
+.btn-circle:active{transform:scale(0.94)}
+.btn-circle.connected{border-color:#22c55e;background:#052e16;box-shadow:0 0 28px rgba(34,197,94,0.45)}
+.btn-circle.connecting{border-color:#eab308;background:#1c1917}
+
+.pwr-icon{width:44px;height:44px;display:flex;align-items:center;justify-content:center;position:relative;margin-bottom:4px}
+.pwr-ring{width:36px;height:36px;border-radius:50%;border:3.5px solid #60a5fa;border-top-color:transparent}
+.pwr-bar{position:absolute;top:3px;width:3.5px;height:15px;background:#60a5fa;border-radius:2px}
+.connected .pwr-ring{border-color:#4ade80;border-top-color:transparent}
+.connected .pwr-bar{background:#4ade80}
+
+.spin-ring{width:44px;height:44px;border:3.5px solid rgba(234,179,8,0.2);border-top-color:#facc15;border-right-color:#facc15;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:8px}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-.conn-label{margin-top:10px;font-size:14px;font-weight:800;letter-spacing:2px;color:#60a5fa}
-.connected .conn-label{color:#4ade80}
-.connecting-state .conn-label{color:#facc15;font-size:13px}
+.btn-txt{font-size:12px;font-weight:800;letter-spacing:2px;color:#60a5fa}
+.connected .btn-txt{color:#4ade80}
+.connecting .btn-txt{color:#facc15;font-size:10px}
 
-.main-status{text-align:center;font-size:13px;font-weight:700;letter-spacing:1.5px;margin-top:16px}
-.sub-info{text-align:center;color:#64748b;font-size:11px;margin-top:4px}
-.encrypt-text{text-align:center;color:#4b5563;font-size:11px;margin-top:2px}
+.status-title{font-size:18px;font-weight:700;color:#f8fafc;margin-top:20px;text-align:center}
+.status-sub{font-size:12px;font-weight:600;color:#64748b;margin-top:4px;text-align:center}
+.status-sub.connected{color:#4ade80}
+.status-sub.connecting{color:#facc15}
+.host-tag{font-size:11px;font-family:'SF Mono','Menlo',monospace;color:#64748b;margin-top:4px;text-align:center}
 
-/* Speed */
-.speed-cards{display:flex;gap:10px;margin:0 20px 12px}
-.speed-card{flex:1;background:#111827;border-radius:12px;padding:12px;border:1px solid #1f2937}
-.speed-card-label{color:#6b7280;font-size:10px;font-weight:600;letter-spacing:1px}
-.speed-card-value{color:#e5e7eb;font-size:16px;font-weight:700;font-family:'SF Mono','Menlo',monospace;margin-top:4px}
+/* Speed Stats Cards */
+.speed-grid{display:flex;gap:12px;margin:0 20px 20px}
+.speed-box{flex:1;background:#131b2e;border-radius:16px;padding:14px;border:1px solid #1e293b}
+.speed-lbl{color:#64748b;font-size:10px;font-weight:700;letter-spacing:1.2px}
+.speed-val{color:#4ade80;font-size:18px;font-weight:700;font-family:'SF Mono','Menlo',monospace;margin-top:4px}
+.speed-val.ul{color:#60a5fa}
 
-/* Section */
-.section-wrap{margin:0 16px 12px}
-.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding:0 4px}
-.section-title{color:#94a3b8;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
-.section-link{color:#60a5fa;font-size:12px;font-weight:600;cursor:pointer}
+/* Cards Section */
+.sec-wrap{margin:0 20px 20px}
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding:0 4px}
+.sec-title{color:#64748b;font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase}
+.sec-link{color:#60a5fa;font-size:12px;font-weight:600;cursor:pointer}
 
 /* Server Card */
-.s-card{display:flex;align-items:center;padding:14px 12px;margin-bottom:6px;border-radius:14px;border:1px solid #334155;background:#1e293b;cursor:pointer;transition:opacity 0.1s}
-.s-card:active{opacity:0.8}
-.s-card.sel{background:rgba(30,64,175,0.4);border-color:#3b82f6}
-.s-card .flag{font-size:28px;margin-right:12px}
-.s-card .info{flex:1}
-.s-card .cntry-row{display:flex;align-items:center;gap:8px}
-.s-card .cntry-name{color:#f1f5f9;font-size:16px;font-weight:600}
-.badge-free{background:rgba(34,197,94,0.15);color:#4ade80;font-size:11px;font-weight:700;padding:2px 8px;border-radius:8px}
-.badge-pro{background:rgba(139,92,246,0.15);color:#a78bfa;font-size:11px;font-weight:700;padding:2px 8px;border-radius:8px}
-.s-card .hostline{color:#64748b;font-size:12px;margin-top:3px}
-.s-card .stats{text-align:right}
-.s-card .spd{font-size:13px;font-weight:600;font-family:'SF Mono','Menlo',monospace}
-.s-card .png{font-size:11px;font-family:'SF Mono','Menlo',monospace;margin-top:2px}
-.s-card .dot{margin-left:12px;width:8px;height:8px;border-radius:50%;background:#3b82f6;flex-shrink:0}
+.srv-card{display:flex;align-items:center;padding:12px 14px;margin-bottom:8px;border-radius:14px;border:1px solid #1e293b;background:#131b2e;cursor:pointer;transition:all 0.15s}
+.srv-card:active{opacity:0.8}
+.srv-card.sel{background:rgba(30,58,138,0.45);border-color:#3b82f6}
+.srv-card .flag{font-size:26px;margin-right:12px}
+.srv-card .info{flex:1;margin-right:8px}
+.srv-card .cntry-row{display:flex;align-items:center;gap:6px}
+.srv-card .cntry-name{color:#f8fafc;font-size:15px;font-weight:700}
+.badge-free{background:rgba(34,197,94,0.15);color:#4ade80;font-size:10px;font-weight:800;padding:2px 6px;border-radius:6px}
+.badge-check{width:16px;height:16px;border-radius:8px;background:#3b82f6;color:#fff;font-size:10px;font-weight:bold;display:inline-flex;align-items:center;justify-content:center}
+.srv-card .hostline{color:#64748b;font-size:12px;margin-top:2px}
+.srv-card .stats{text-align:right}
+.srv-card .spd{font-size:12px;font-weight:700;font-family:'SF Mono','Menlo',monospace;color:#4ade80}
+.srv-card .png{font-size:11px;font-family:'SF Mono','Menlo',monospace;color:#4ade80;margin-top:2px}
 
-/* Select Server */
-.select-box{margin:0 16px 12px;background:#1e293b;border:1px dashed #334155;border-radius:14px;padding:20px 16px;text-align:center;cursor:pointer}
-.select-box:active{opacity:0.7}
-.select-box .globe{font-size:32px;margin-bottom:8px}
-.select-box .lbl{color:#f1f5f9;font-size:15px;font-weight:600}
-.select-box .sub{color:#64748b;font-size:12px;margin-top:4px}
-
-/* Kill Switch */
-.kills{margin:0 16px 12px;background:rgba(154,52,18,0.25);border:1px solid rgba(249,115,22,0.5);border-radius:12px;padding:14px}
-.kills .kst{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-.kills .kst span{color:#f97316;font-size:14px;font-weight:700}
-.kills .ksd{color:#fb923c;font-size:12px;line-height:18px}
-.kills .ksx{margin-top:10px;background:rgba(249,115,22,0.2);border:1px solid #f97316;border-radius:8px;padding:8px;text-align:center;cursor:pointer}
-.kills .ksx:active{opacity:0.7}
-.kills .ksx span{color:#f97316;font-size:12px;font-weight:700;letter-spacing:1px}
-
-/* Error */
-.err{margin:0 16px 12px;background:rgba(127,29,29,0.2);border:1px solid rgba(185,28,28,0.4);border-radius:12px;padding:12px;text-align:center}
-.err span{color:#f87171;font-size:13px;font-weight:600}
-
-/* Loading */
-.load{text-align:center;padding:24px 20px}
-.load-spin{width:36px;height:36px;border:3px solid rgba(59,130,246,0.2);border-top-color:#3b82f6;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto}
-.load .t{color:#e5e7eb;font-size:14px;font-weight:600;margin-top:12px}
-.load .s{color:#64748b;font-size:12px;margin-top:4px}
-
-/* No servers */
-.nosrv{text-align:center;padding:24px 20px}
-.nosrv .t{color:#f87171;font-size:14px;font-weight:600;margin-bottom:4px}
-.nosrv .s{color:#64748b;font-size:12px}
-
-/* Ad */
-.ad-banner{margin:12px 0 0;background:#0f172a;padding:4px 0;text-align:center}
-.ad-inner{background:#1a1a2e;border:1px dashed #334155;border-radius:4px;height:50px;display:flex;align-items:center;justify-content:center;max-width:320px;margin:0 auto}
-.ad-inner span{color:#4b5563;font-size:11px}
-
-/* Controls */
-.controls{position:fixed;bottom:0;left:0;right:0;max-width:400px;margin:0 auto;background:#111827;border-top:1px solid #1f2937;padding:8px 12px 12px;z-index:100}
-.ctrl-label{text-align:center;font-size:9px;font-weight:700;letter-spacing:1px;color:#64748b;margin-bottom:6px}
-.ctrl-row{display:flex;gap:4px;justify-content:center;flex-wrap:wrap}
-.cb{background:#0f172a;border:1px solid #334155;color:#94a3b8;padding:5px 8px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:0.5px;cursor:pointer;transition:all 0.15s;white-space:nowrap}
-.cb:hover{border-color:#3b82f6;color:#60a5fa}
+/* Controls Footer */
+.controls{position:fixed;bottom:0;left:0;right:0;max-width:414px;margin:0 auto;background:#131b2e;border-top:1px solid #1e293b;padding:8px 12px 12px;z-index:100}
+.ctrl-lbl{text-align:center;font-size:9px;font-weight:700;letter-spacing:1px;color:#64748b;margin-bottom:6px}
+.ctrl-row{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.cb{background:#0b1329;border:1px solid #1e293b;color:#94a3b8;padding:6px 12px;border-radius:8px;font-size:10px;font-weight:800;cursor:pointer;transition:all 0.15s}
 .cb.on{background:#1e3a5f;border-color:#3b82f6;color:#60a5fa}
-.cb.green{background:#052e16;border-color:#22c55e;color:#4ade80}
-.scroll-pad{padding-bottom:100px}
+.scroll-pad{padding-bottom:90px}
 </style>
 </head>
 <body>
-<div class="safe-top"></div>
 <div id="app"></div>
 <div class="controls">
-  <div class="ctrl-label">PREVIEW STATE (tap to switch)</div>
+  <div class="ctrl-lbl">BEARDVPN PREVIEW — TAP STATE TO TEST UI</div>
   <div class="ctrl-row">
     <button class="cb" id="btn-idle" onclick="setState('idle')">IDLE</button>
     <button class="cb" id="btn-connecting" onclick="setState('connecting')">CONNECTING</button>
     <button class="cb" id="btn-connected" onclick="setState('connected')">CONNECTED</button>
     <button class="cb" id="btn-error" onclick="setState('error')">ERROR</button>
-    <button class="cb" id="btn-loading" onclick="setState('loading')">LOADING</button>
-    <button class="cb" id="btn-noservers" onclick="setState('noservers')">NO SRV</button>
-  </div>
-  <div class="ctrl-row" style="margin-top:4px">
-    <button class="cb" id="adBtn" onclick="toggleAds()">ADS: OFF</button>
-    <button class="cb green" id="srvBtn" onclick="toggleServer()">SERVER: NONE</button>
   </div>
 </div>
 
@@ -144,21 +111,17 @@ const SRV=[
   {cl:'Germany',cs:'DE',ip:'185.216.69.171',hn:'kazuhitoyamashita.com',op:'VPNGate',sp:8388608,pi:88,free:1},
   {cl:'United States',cs:'US',ip:'216.155.139.117',hn:'us1.vpngate.net',op:'VPNGate',sp:6291456,pi:120,free:1},
   {cl:'South Korea',cs:'KR',ip:'121.78.245.144',hn:'korea2.vpngate.net',op:'VPNGate',sp:5242880,pi:156,free:1},
-  {cl:'Singapore',cs:'SG',ip:'139.99.124.58',hn:'sg1.vpngate.net',op:'VPNGate',sp:10485760,pi:71,free:1},
 ];
-const FLAGS={JP:'🇯🇵',US:'🇺🇸',KR:'🇰🇷',SG:'🇸🇬',DE:'🇩🇪',GB:'🇬🇧',FR:'🇫🇷',CA:'🇨🇦',AU:'🇦🇺',IN:'🇮🇳',NL:'🇳🇱',RU:'🇷🇺',BR:'🇧🇷',VN:'🇻🇳',TW:'🇹🇼',HK:'🇭🇰',TH:'🇹🇭'};
+const FLAGS={JP:'🇯🇵',US:'🇺🇸',KR:'🇰🇷',SG:'🇸🇬',DE:'🇩🇪'};
 
 function fmtSpd(b){if(!b||b===0)return'0 B';if(b>=1048576)return(b/1048576).toFixed(1)+' MB';if(b>=1024)return(b/1024).toFixed(1)+' KB';return b+' B'}
-function fmtPing(ms){return ms<=0?'—':ms+' ms'}
-function pClr(ms){return ms<50?'#4ade80':ms<150?'#facc15':'#f87171'}
-function sClr(b){const m=(b*8)/(1024*1024);return m>=100?'#4ade80':m>=10?'#facc15':'#f87171'}
 
-let state='idle', showAds=false, hasServer=false, sel=0, bytesIn=0, bytesOut=0, speedTimer=null;
+let state='idle', sel=0, bytesIn=0, bytesOut=0, speedTimer=null;
 
 function animSpeed(){
   if(speedTimer)clearInterval(speedTimer);
   if(state==='connected'){
-    bytesIn=0;bytesOut=0;
+    bytesIn=14680064;bytesOut=2097152;
     speedTimer=setInterval(()=>{
       bytesIn+=Math.floor(Math.random()*200000)+50000;
       bytesOut+=Math.floor(Math.random()*80000)+10000;
@@ -171,80 +134,67 @@ function animSpeed(){
 }
 
 function render(){
-  const I=state==='connected',C=state==='connecting',E=state==='error',L=state==='loading',N=state==='noservers';
+  const I=state==='connected',C=state==='connecting',E=state==='error';
   const sc=I?'#4ade80':C?'#facc15':E?'#f87171':'#64748b';
-  const sl=I?'PROTECTED':C?'CONNECTING...':E?'FAILED':'NOT CONNECTED';
+  const st=I?'Protected & Encrypted':C?'Establishing Connection...':E?'Connection Failed':'Not Connected';
+  const ss=I?'Your network traffic is secured':C?'Routing tunnel through OpenVPN':E?'Tap to retry or pick another server':'Tap button to secure your device';
 
-  // controls
-  ['idle','connecting','connected','error','loading','noservers'].forEach(s=>{
+  ['idle','connecting','connected','error'].forEach(s=>{
     const b=document.getElementById('btn-'+s);
     if(b)b.className='cb'+(state===s?' on':'');
   });
 
-  // connect btn
   let btn;
   if(C){
-    btn=`<div class="connect-btn connecting-state"><div class="spinner-wrap"></div><div class="conn-label">CONNECTING</div></div>`;
+    btn=`<div class="btn-wrap"><div class="btn-circle connecting"><div class="spin-ring"></div><div class="btn-txt">CONNECTING</div></div></div>`;
   }else if(I){
-    btn=`<div class="idle-glow" style="background:#22c55e;animation:connGlow 3s ease-in-out infinite"></div><div class="connect-btn connected" onclick="doDisconnect()"><div class="power-icon"></div><div class="conn-label">CONNECTED</div></div>`;
+    btn=`<div class="btn-wrap"><div class="aura-ring connected"></div><div class="btn-circle connected" onclick="doDisconnect()"><div class="pwr-icon"><div class="pwr-ring"></div><div class="pwr-bar"></div></div><div class="btn-txt">DISCONNECT</div></div></div>`;
   }else{
-    btn=`<div class="idle-glow"></div><div class="connect-btn" onclick="doConnect()"><div class="power-icon"></div><div class="conn-label">CONNECT</div></div>`;
+    btn=`<div class="btn-wrap"><div class="aura-ring"></div><div class="btn-circle" onclick="doConnect()"><div class="pwr-icon"><div class="pwr-ring"></div><div class="pwr-bar"></div></div><div class="btn-txt">CONNECT</div></div></div>`;
   }
 
-  let sub=`<div class="main-status" style="color:${sc}">${sl}</div>`;
-  if(I&&hasServer){
+  let sub=`<div class="status-title">${st}</div><div class="status-sub ${state}">${ss}</div>`;
+  if(I){
     const s=SRV[sel];
-    sub+=`<div class="sub-info">${s.cl} • ${s.ip}</div><div class="encrypt-text">Your traffic is encrypted</div>`;
+    sub+=`<div class="host-tag">${s.cl} • ${s.ip}</div>`;
   }
 
   let speed='';
   if(I){
-    speed=`<div class="speed-cards"><div class="speed-card"><div class="speed-card-label">DOWNLOAD</div><div class="speed-card-value" id="dl">0 B</div></div><div class="speed-card"><div class="speed-card-label">UPLOAD</div><div class="speed-card-value" id="ul">0 B</div></div></div>`;
+    speed=`<div class="speed-grid"><div class="speed-box"><div class="speed-lbl">DOWNLOAD</div><div class="speed-val" id="dl">14.0 MB</div></div><div class="speed-box"><div class="speed-lbl">UPLOAD</div><div class="speed-val ul" id="ul">2.0 MB</div></div></div>`;
   }
 
-  let srvSec='';
-  if(hasServer&&!N){
-    const s=SRV[sel];
-    srvSec=`<div class="section-wrap"><div class="section-header"><span class="section-title">Current Server</span><span class="section-link">Change</span></div>${card(s,true)}</div>`;
-  }else if(!N){
-    srvSec=`<div class="select-box" onclick="hasServer=true;render()"><div class="globe">🌐</div><div class="lbl">Select a Server</div><div class="sub">${SRV.length} servers available</div></div>`;
-  }
+  const s=SRV[sel];
+  let srvSec=`<div class="sec-wrap"><div class="sec-head"><span class="sec-title">Selected Server</span><span class="sec-link">Change Server ›</span></div>${card(s,true)}</div>`;
 
-  let top='';
-  if(!N&&!L){
-    top=`<div class="section-wrap"><div class="section-header"><span class="section-title">Top Servers</span><span class="section-link">View All (${SRV.length})</span></div>${SRV.map((s,i)=>card(s,hasServer&&i===sel)).join('')}</div>`;
-  }
-
-  let er=E?`<div class="err"><span>Connection failed. Try a different server.</span></div>`:'';
-  let ld=(L&&N)?`<div class="load"><div class="load-spin"></div><div class="t">Loading servers...</div><div class="s">Fetching VPN servers from the network</div></div>`:'';
-  let ns=(N&&!L)?`<div class="nosrv"><div class="t">No servers loaded</div><div class="s">Pull down to refresh and try again</div></div>`:'';
-  let ad=showAds?`<div class="ad-banner"><div class="ad-inner"><span>AdMob Banner (320×50)</span></div></div>`:'';
+  let top=`<div class="sec-wrap"><div class="sec-head"><span class="sec-title">Recommended Fast Servers</span><span class="sec-link">View All (${SRV.length}) ›</span></div>${SRV.map((s,i)=>card(s,i===sel)).join('')}</div>`;
 
   document.getElementById('app').innerHTML=`<div class="scroll-pad">
-    <div class="header"><span class="header-title">BeardVpn</span><div class="status-badge"><div class="status-dot" style="background:${sc}"></div><span class="status-badge-text" style="color:${sc}">${sl}</span></div></div>
-    <div class="logo-section"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%231e3a5f'/%3E%3Cstop offset='100%25' stop-color='%230f172a'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='48' fill='url(%23g)' stroke='%233b82f6' stroke-width='2'/%3E%3Ccircle cx='50' cy='50' r='38' fill='none' stroke='%233b82f6' stroke-width='1' opacity='0.3'/%3E%3Ctext x='50' y='42' text-anchor='middle' fill='%2360a5fa' font-size='16' font-weight='bold' font-family='sans-serif'%3EBEARD%3C/text%3E%3Ctext x='50' y='62' text-anchor='middle' fill='%2360a5fa' font-size='14' font-weight='bold' font-family='sans-serif'%3EVPN%3C/text%3E%3Ctext x='50' y='80' text-anchor='middle' font-size='24'%3E⚔%3C/text%3E%3C/svg%3E" alt="BeardVpn" width="96" height="96"></div>
-    <div class="connect-section"><div class="connect-wrap">${btn}</div>${sub}</div>
-    ${speed}${er}${ld}${ns}${srvSec}${top}${ad}</div>`;
+    <div class="header">
+      <div class="brand">
+        <div class="brand-logo">🛡️</div>
+        <span class="header-title">BeardVpn</span>
+      </div>
+      <div class="status-pill ${state}">
+        <div class="status-pill-dot"></div>
+        <span class="status-pill-text">${I?'CONNECTED':C?'CONNECTING':'IDLE'}</span>
+      </div>
+    </div>
+    <div class="hero">${btn}${sub}</div>
+    ${speed}${srvSec}${top}</div>`;
 
   if(I)animSpeed();
 }
 
 function card(s,isSel){
   const f=FLAGS[s.cs]||'🌐';
-  return `<div class="s-card${isSel?' sel':''}" onclick="pickServer(${SRV.indexOf(s)})"><span class="flag">${f}</span><div class="info"><div class="cntry-row"><span class="cntry-name">${s.cl}</span>${s.free?'<span class="badge-free">FREE</span>':'<span class="badge-pro">PRO</span>'}</div><div class="hostline">${s.hn} • ${s.op}</div></div><div class="stats"><div class="spd" style="color:${sClr(s.sp)}">${fmtSpd(s.sp)}</div><div class="png" style="color:${pClr(s.pi)}">${fmtPing(s.pi)}</div></div>${isSel?'<div class="dot"></div>':''}</div>`;
+  return `<div class="srv-card${isSel?' sel':''}" onclick="pickServer(${SRV.indexOf(s)})"><span class="flag">${f}</span><div class="info"><div class="cntry-row"><span class="cntry-name">${s.cl}</span><span class="badge-free">FREE</span>${isSel?'<span class="badge-check">✓</span>':''}</div><div class="hostline">${s.hn} • ${s.op}</div></div><div class="stats"><div class="spd">${fmtSpd(s.sp)}</div><div class="png">${s.pi} ms</div></div></div>`;
 }
 
-function pickServer(i){sel=i;hasServer=true;render()}
+function pickServer(i){sel=i;render()}
 function setState(s){state=s;render()}
-function doConnect(){state='connecting';render();setTimeout(()=>{state='connected';render()},2000)}
-function doDisconnect(){state='idle';hasServer=false;render()}
-function toggleAds(){showAds=!showAds;document.getElementById('adBtn').textContent=showAds?'ADS: ON':'ADS: OFF';render()}
-function toggleServer(){hasServer=!hasServer;document.getElementById('srvBtn').textContent=hasServer?'SERVER: SET':'SERVER: NONE';render()}
-
-// Add the connected glow keyframe
-const style=document.createElement('style');
-style.textContent='@keyframes connGlow{0%,100%{opacity:0.15}50%{opacity:0.45}}';
-document.head.appendChild(style);
+function doConnect(){state='connecting';render();setTimeout(()=>{state='connected';render()},1500)}
+function doDisconnect(){state='idle';render()}
 
 render();
 </script>

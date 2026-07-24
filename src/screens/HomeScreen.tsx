@@ -52,7 +52,8 @@ export function HomeScreen({
   const isError = connection.status === 'error';
 
   const statusColor = isConnected ? '#4ade80' : isConnecting ? '#facc15' : isError ? '#f87171' : '#64748b';
-  const statusLabel = isConnected ? 'PROTECTED' : isConnecting ? 'CONNECTING...' : isError ? 'FAILED' : 'NOT CONNECTED';
+  const statusTitle = isConnected ? 'Protected & Encrypted' : isConnecting ? 'Establishing Connection...' : isError ? 'Connection Failed' : 'Not Connected';
+  const statusSubtitle = isConnected ? 'Your network traffic is secured' : isConnecting ? 'Routing tunnel through OpenVPN' : isError ? 'Tap to retry or pick another server' : 'Tap button to secure your device';
 
   const totalCount = servers.length;
 
@@ -79,7 +80,7 @@ export function HomeScreen({
   }, [onSelectServer]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#0a0f1e' }}>
+    <View style={{ flex: 1, backgroundColor: '#090d16' }}>
       <StatusBar style="light" />
       <ScrollView
         contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + 90 }}
@@ -93,113 +94,127 @@ export function HomeScreen({
           />
         }
       >
+        {/* Header Bar */}
         <View style={{
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
           paddingHorizontal: 20,
-          paddingTop: insets.top + 8,
-          paddingBottom: 8,
+          paddingTop: insets.top + 10,
+          paddingBottom: 16,
         }}>
-          <Text style={{ color: '#f1f5f9', fontSize: 22, fontWeight: '800', letterSpacing: 0.3 }}>
-            BeardVpn
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <Image
+              source={logoAsset}
+              style={{ width: 32, height: 32 }}
+              resizeMode="contain"
+            />
+            <Text style={{ color: '#f8fafc', fontSize: 20, fontWeight: '800', letterSpacing: 0.5 }}>
+              BeardVpn
+            </Text>
+          </View>
+
           <View style={{
             flexDirection: 'row',
             alignItems: 'center',
             gap: 6,
-            backgroundColor: '#1e293b',
-            paddingHorizontal: 10,
-            paddingVertical: 5,
+            backgroundColor: isConnected ? 'rgba(34,197,94,0.12)' : '#131b2e',
+            borderWidth: 1,
+            borderColor: isConnected ? 'rgba(34,197,94,0.3)' : '#1e293b',
+            paddingHorizontal: 12,
+            paddingVertical: 6,
             borderRadius: 20,
           }}>
-            <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: statusColor }} />
-            <Text style={{ color: statusColor, fontSize: 10, fontWeight: '700', letterSpacing: 1 }}>
-              {statusLabel}
+            <View style={{ width: 7, height: 7, borderRadius: 3.5, backgroundColor: statusColor }} />
+            <Text style={{ color: statusColor, fontSize: 11, fontWeight: '800', letterSpacing: 1 }}>
+              {isConnected ? 'CONNECTED' : isConnecting ? 'CONNECTING' : 'IDLE'}
             </Text>
           </View>
         </View>
 
-        <View style={{ alignItems: 'center', paddingTop: 8, paddingBottom: 4 }}>
-          <Image
-            source={logoAsset}
-            style={{ width: 80, height: 80 }}
-            resizeMode="contain"
-          />
-        </View>
-
-        <View style={{ alignItems: 'center', paddingVertical: 8 }}>
+        {/* Hero Section: Button & Status */}
+        <View style={{ alignItems: 'center', paddingTop: 16, paddingBottom: 20 }}>
           <ConnectButton
             status={connection.status}
             onConnect={onConnect}
             onDisconnect={handleDisconnectPress}
           />
-          <Text style={{
-            color: statusColor,
-            fontSize: 13,
-            fontWeight: '700',
-            letterSpacing: 1.5,
-            marginTop: 8,
-          }}>
-            {statusLabel}
-          </Text>
-          {isConnected && selectedServer && (
-            <Text style={{ color: '#64748b', fontSize: 11, marginTop: 4 }}>
-              {selectedServer.countryLong} • {selectedServer.ip}
+
+          <View style={{ alignItems: 'center', marginTop: 20, paddingHorizontal: 32 }}>
+            <Text style={{
+              color: '#f8fafc',
+              fontSize: 18,
+              fontWeight: '700',
+              textAlign: 'center',
+            }}>
+              {statusTitle}
             </Text>
-          )}
-          {isConnected && (
-            <Text style={{ color: '#4b5563', fontSize: 11, marginTop: 2 }}>
-              Your traffic is encrypted
+
+            <Text style={{
+              color: statusColor,
+              fontSize: 12,
+              fontWeight: '600',
+              marginTop: 4,
+              textAlign: 'center',
+            }}>
+              {statusSubtitle}
             </Text>
-          )}
+
+            {isConnected && selectedServer && (
+              <Text style={{ color: '#64748b', fontSize: 11, marginTop: 4, fontFamily: 'monospace' }}>
+                {selectedServer.countryLong} • {selectedServer.ip}
+              </Text>
+            )}
+          </View>
         </View>
 
+        {/* Traffic Stats (Shown when Connected) */}
         {isConnected && (
           <View style={{
             flexDirection: 'row',
             marginHorizontal: 20,
-            marginBottom: 12,
-            gap: 10,
+            marginBottom: 20,
+            gap: 12,
           }}>
             <View style={{
               flex: 1,
-              backgroundColor: '#111827',
-              borderRadius: 12,
-              padding: 12,
+              backgroundColor: '#131b2e',
+              borderRadius: 16,
+              padding: 14,
               borderWidth: 1,
-              borderColor: '#1f2937',
+              borderColor: '#1e293b',
             }}>
-              <Text style={{ color: '#6b7280', fontSize: 10, fontWeight: '600', letterSpacing: 1 }}>DOWNLOAD</Text>
-              <Text style={{ color: '#e5e7eb', fontSize: 16, fontWeight: '700', fontFamily: 'monospace', marginTop: 4 }}>
+              <Text style={{ color: '#64748b', fontSize: 10, fontWeight: '700', letterSpacing: 1.2 }}>DOWNLOAD</Text>
+              <Text style={{ color: '#4ade80', fontSize: 18, fontWeight: '700', fontFamily: 'monospace', marginTop: 4 }}>
                 {formatSpeed(connection.bytesIn)}
               </Text>
             </View>
             <View style={{
               flex: 1,
-              backgroundColor: '#111827',
-              borderRadius: 12,
-              padding: 12,
+              backgroundColor: '#131b2e',
+              borderRadius: 16,
+              padding: 14,
               borderWidth: 1,
-              borderColor: '#1f2937',
+              borderColor: '#1e293b',
             }}>
-              <Text style={{ color: '#6b7280', fontSize: 10, fontWeight: '600', letterSpacing: 1 }}>UPLOAD</Text>
-              <Text style={{ color: '#e5e7eb', fontSize: 16, fontWeight: '700', fontFamily: 'monospace', marginTop: 4 }}>
+              <Text style={{ color: '#64748b', fontSize: 10, fontWeight: '700', letterSpacing: 1.2 }}>UPLOAD</Text>
+              <Text style={{ color: '#60a5fa', fontSize: 18, fontWeight: '700', fontFamily: 'monospace', marginTop: 4 }}>
                 {formatSpeed(connection.bytesOut)}
               </Text>
             </View>
           </View>
         )}
 
-        {selectedServer && (
-          <View style={{ marginHorizontal: 16, marginBottom: 12 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, paddingHorizontal: 4 }}>
-              <Text style={{ color: '#94a3b8', fontSize: 12, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' }}>
-                Current Server
+        {/* Selected Server Card */}
+        {selectedServer ? (
+          <View style={{ marginHorizontal: 20, marginBottom: 20 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, paddingHorizontal: 4 }}>
+              <Text style={{ color: '#64748b', fontSize: 11, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase' }}>
+                Selected Server
               </Text>
               <Pressable onPress={onServerListPress}>
                 <Text style={{ color: '#60a5fa', fontSize: 12, fontWeight: '600' }}>
-                  Change
+                  Change Server ›
                 </Text>
               </Pressable>
             </View>
@@ -209,48 +224,53 @@ export function HomeScreen({
               onSelect={() => handleServerTap(selectedServer)}
             />
           </View>
-        )}
-
-        {!selectedServer && (
+        ) : (
           <Pressable
             onPress={onServerListPress}
             style={({ pressed }) => ({
-              marginHorizontal: 16,
-              marginBottom: 12,
-              backgroundColor: '#1e293b',
+              marginHorizontal: 20,
+              marginBottom: 20,
+              backgroundColor: '#131b2e',
               borderWidth: 1,
-              borderStyle: 'dashed',
-              borderColor: '#334155',
-              borderRadius: 14,
-              paddingVertical: 20,
+              borderColor: '#1e293b',
+              borderRadius: 16,
+              paddingVertical: 18,
               paddingHorizontal: 16,
+              flexDirection: 'row',
               alignItems: 'center',
+              justifyContent: 'space-between',
               opacity: pressed ? 0.7 : 1,
             })}
           >
-            <Text style={{ fontSize: 32, marginBottom: 8 }}>{'\u{1F310}'}</Text>
-            <Text style={{ color: '#f1f5f9', fontSize: 15, fontWeight: '600' }}>
-              Select a Server
-            </Text>
-            <Text style={{ color: '#64748b', fontSize: 12, marginTop: 4 }}>
-              {totalCount > 0 ? `${totalCount} servers available` : 'Tap to browse servers'}
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+              <Text style={{ fontSize: 28 }}>🌐</Text>
+              <View>
+                <Text style={{ color: '#f8fafc', fontSize: 15, fontWeight: '700' }}>
+                  Select a VPN Server
+                </Text>
+                <Text style={{ color: '#64748b', fontSize: 12, marginTop: 2 }}>
+                  {totalCount > 0 ? `${totalCount} servers ready worldwide` : 'Tap to browse available servers'}
+                </Text>
+              </View>
+            </View>
+            <Text style={{ color: '#60a5fa', fontSize: 20, fontWeight: 'bold' }}>›</Text>
           </Pressable>
         )}
 
+        {/* Top Fast Servers */}
         {servers.length > 0 && (
-          <View style={{ marginHorizontal: 16, marginBottom: 12 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, paddingHorizontal: 4 }}>
-              <Text style={{ color: '#94a3b8', fontSize: 12, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' }}>
-                Top Servers
+          <View style={{ marginHorizontal: 20, marginBottom: 20 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, paddingHorizontal: 4 }}>
+              <Text style={{ color: '#64748b', fontSize: 11, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase' }}>
+                Recommended Fast Servers
               </Text>
               <Pressable onPress={onServerListPress}>
                 <Text style={{ color: '#60a5fa', fontSize: 12, fontWeight: '600' }}>
-                  View All ({totalCount})
+                  View All ({totalCount}) ›
                 </Text>
               </Pressable>
             </View>
-            {getTopServersByCountry(servers, 5).map((server) => (
+            {getTopServersByCountry(servers, 4).map((server) => (
               <ServerCard
                 key={server.ip}
                 server={server}
@@ -261,45 +281,35 @@ export function HomeScreen({
           </View>
         )}
 
+        {/* Connection Error Message */}
         {isError && (
           <View style={{
-            marginHorizontal: 16,
-            backgroundColor: 'rgba(127,29,29,0.2)',
+            marginHorizontal: 20,
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
             borderWidth: 1,
-            borderColor: 'rgba(185,28,28,0.4)',
-            borderRadius: 12,
-            padding: 12,
+            borderColor: 'rgba(239, 68, 68, 0.3)',
+            borderRadius: 14,
+            padding: 14,
+            alignItems: 'center',
           }}>
-            <Text style={{ color: '#f87171', fontSize: 13, textAlign: 'center', fontWeight: '600' }}>
-              Connection failed. Try a different server.
+            <Text style={{ color: '#f87171', fontSize: 13, fontWeight: '600', textAlign: 'center' }}>
+              Connection failed. Try selecting another server.
             </Text>
           </View>
         )}
 
+        {/* Loading Spinner for Empty List */}
         {isLoading && servers.length === 0 && (
-          <View style={{ marginHorizontal: 20, alignItems: 'center', paddingVertical: 24 }}>
+          <View style={{ marginHorizontal: 20, alignItems: 'center', paddingVertical: 32 }}>
             <ActivityIndicator size="large" color="#3b82f6" />
-            <Text style={{ color: '#e5e7eb', fontSize: 14, marginTop: 12, fontWeight: '600' }}>
-              Loading servers...
-            </Text>
-            <Text style={{ color: '#64748b', fontSize: 12, marginTop: 4 }}>
-              Fetching VPN servers from the network
+            <Text style={{ color: '#94a3b8', fontSize: 13, marginTop: 12, fontWeight: '600' }}>
+              Loading fast servers from network...
             </Text>
           </View>
         )}
 
-        {!isLoading && servers.length === 0 && (
-          <View style={{ marginHorizontal: 20, alignItems: 'center', paddingVertical: 24 }}>
-            <Text style={{ color: '#f87171', fontSize: 14, fontWeight: '600', marginBottom: 4 }}>
-              No servers loaded
-            </Text>
-            <Text style={{ color: '#64748b', fontSize: 12, textAlign: 'center' }}>
-              Pull down to refresh and try again
-            </Text>
-          </View>
-        )}
-
-        <View style={{ marginTop: 12 }}>
+        {/* Ad Banner */}
+        <View style={{ marginTop: 8 }}>
           <AdBanner size="BANNER" />
         </View>
       </ScrollView>
