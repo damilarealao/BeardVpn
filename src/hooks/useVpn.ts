@@ -116,8 +116,8 @@ export function useVpn() {
   }, [syncStatus, clearStatsInterval]);
 
   const connect = useCallback(
-    async (server: VPNServer) => {
-      if (!server.isFree && !premiumUnlocked) {
+    async (server: VPNServer, options?: { forcePremium?: boolean }) => {
+      if (!server.isFree && !premiumUnlocked && !options?.forcePremium) {
         return false;
       }
 

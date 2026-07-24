@@ -81,10 +81,10 @@ export default function App() {
 
     const doConnect = () => {
       selectServer(action.server);
-      connect(action.server);
       if (rewardGranted) {
         unlockPremium(30 * 60 * 1000);
       }
+      connect(action.server, { forcePremium: rewardGranted });
     };
 
     if (action.type === 'switch') {
