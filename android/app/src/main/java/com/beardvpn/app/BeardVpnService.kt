@@ -112,6 +112,7 @@ class BeardVpnService : VpnService() {
                         Log.e(TAG, "OpenVPN error: $error")
                         sendEvent("onVPNStateChanged", "error")
                         sendErrorEvent(error)
+                        stopVpn()
                     }
                 )
                 openVpnClient?.start()
@@ -125,7 +126,7 @@ class BeardVpnService : VpnService() {
             Log.e(TAG, "VPN start failed: ${e.message}", e)
             sendEvent("onVPNStateChanged", "error")
             sendErrorEvent("VPN start failed: ${e.message}")
-            stopSelf()
+            stopVpn()
         }
     }
 
