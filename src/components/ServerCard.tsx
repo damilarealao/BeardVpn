@@ -28,19 +28,20 @@ export function ServerCard({ server, isSelected, onSelect }: ServerCardProps) {
         marginBottom: 8,
         borderRadius: 14,
         borderWidth: 1,
+        borderLeftWidth: isSelected ? 4 : 1,
         backgroundColor: isSelected ? 'rgba(30,58,138,0.45)' : '#162032',
         borderColor: isSelected ? '#3b82f6' : '#26334d',
         opacity: pressed ? 0.8 : 1,
       })}
     >
-      {/* Country Flag */}
-      <Text style={{ fontSize: 24, width: 32, textAlign: 'center', marginRight: 10 }}>
+      {/* Flag */}
+      <Text style={{ fontSize: 24, marginRight: 12 }}>
         {flag}
       </Text>
 
-      {/* Country Name & Info */}
-      <View style={{ flex: 1, justifyContent: 'center', paddingRight: 8 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+      {/* Main Info */}
+      <View style={{ flex: 1, marginRight: 8 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           <Text
             numberOfLines={1}
             style={{ color: '#f1f5f9', fontSize: 15, fontWeight: '600', flexShrink: 1 }}
@@ -48,12 +49,24 @@ export function ServerCard({ server, isSelected, onSelect }: ServerCardProps) {
             {server.countryLong}
           </Text>
           {server.isFree ? (
-            <View style={{ marginLeft: 6, backgroundColor: 'rgba(34,197,94,0.15)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 }}>
+            <View style={{ backgroundColor: 'rgba(34,197,94,0.15)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 }}>
               <Text style={{ color: '#4ade80', fontSize: 10, fontWeight: '700' }}>FREE</Text>
             </View>
           ) : (
-            <View style={{ marginLeft: 6, backgroundColor: 'rgba(139,92,246,0.15)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 }}>
+            <View style={{ backgroundColor: 'rgba(139,92,246,0.15)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 }}>
               <Text style={{ color: '#a78bfa', fontSize: 10, fontWeight: '700' }}>PRO</Text>
+            </View>
+          )}
+          {isSelected && (
+            <View style={{
+              width: 16,
+              height: 16,
+              borderRadius: 8,
+              backgroundColor: '#3b82f6',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <Text style={{ color: '#ffffff', fontSize: 9, fontWeight: 'bold' }}>{'\u2713'}</Text>
             </View>
           )}
         </View>
@@ -65,8 +78,8 @@ export function ServerCard({ server, isSelected, onSelect }: ServerCardProps) {
         </Text>
       </View>
 
-      {/* Speed & Ping Stats */}
-      <View style={{ alignItems: 'flex-end', justifyContent: 'center', minWidth: 64 }}>
+      {/* Speed & Ping */}
+      <View style={{ alignItems: 'flex-end', justifyContent: 'center' }}>
         <Text style={{ fontSize: 12, fontWeight: '700', color: speedColor, fontFamily: 'monospace' }}>
           {formatSpeed(server.speed)}
         </Text>
@@ -74,11 +87,6 @@ export function ServerCard({ server, isSelected, onSelect }: ServerCardProps) {
           {formatPing(server.ping)}
         </Text>
       </View>
-
-      {/* Selected Indicator */}
-      {isSelected && (
-        <View style={{ marginLeft: 10, width: 8, height: 8, borderRadius: 4, backgroundColor: '#3b82f6' }} />
-      )}
     </Pressable>
   );
 }

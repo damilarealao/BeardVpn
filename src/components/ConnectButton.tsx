@@ -8,13 +8,10 @@ interface ConnectButtonProps {
   onDisconnect: () => void;
 }
 
-const BUTTON_SIZE = 170;
-const GLOW_SIZE = 196;
-
 export function ConnectButton({ status, onConnect, onDisconnect }: ConnectButtonProps) {
   const isConnected = status === 'connected';
   const isConnecting = status === 'connecting' || status === 'disconnecting';
-  
+
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const glowAnim = useRef(new Animated.Value(0.2)).current;
   const spinAnim = useRef(new Animated.Value(0)).current;
@@ -23,14 +20,14 @@ export function ConnectButton({ status, onConnect, onDisconnect }: ConnectButton
     if (isConnected) {
       const pulse = Animated.loop(
         Animated.sequence([
-          Animated.timing(pulseAnim, { toValue: 1.08, duration: 1400, useNativeDriver: true }),
-          Animated.timing(pulseAnim, { toValue: 1, duration: 1400, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 1.1, duration: 1600, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 1, duration: 1600, useNativeDriver: true }),
         ])
       );
       const glow = Animated.loop(
         Animated.sequence([
-          Animated.timing(glowAnim, { toValue: 0.6, duration: 1400, useNativeDriver: true }),
-          Animated.timing(glowAnim, { toValue: 0.2, duration: 1400, useNativeDriver: true }),
+          Animated.timing(glowAnim, { toValue: 0.6, duration: 1600, useNativeDriver: true }),
+          Animated.timing(glowAnim, { toValue: 0.2, duration: 1600, useNativeDriver: true }),
         ])
       );
       pulse.start();
@@ -68,22 +65,20 @@ export function ConnectButton({ status, onConnect, onDisconnect }: ConnectButton
   });
 
   const PowerIcon = ({ color }: { color: string }) => (
-    <View style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginBottom: 6 }}>
-      {/* Outer circle with top gap */}
+    <View style={{ width: 52, height: 52, alignItems: 'center', justifyContent: 'center' }}>
       <View style={{
-        width: 38,
-        height: 38,
-        borderRadius: 19,
-        borderWidth: 3.5,
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        borderWidth: 4,
         borderColor: color,
         borderTopColor: 'transparent',
       }} />
-      {/* Vertical power line passing through top gap */}
       <View style={{
         position: 'absolute',
         top: 2,
-        width: 3.5,
-        height: 16,
+        width: 4,
+        height: 18,
         backgroundColor: color,
         borderRadius: 2,
       }} />
@@ -92,22 +87,22 @@ export function ConnectButton({ status, onConnect, onDisconnect }: ConnectButton
 
   if (isConnecting) {
     return (
-      <View style={{ width: GLOW_SIZE, height: GLOW_SIZE, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ width: 210, height: 210, alignItems: 'center', justifyContent: 'center' }}>
         <View style={{
-          width: BUTTON_SIZE,
-          height: BUTTON_SIZE,
-          borderRadius: BUTTON_SIZE / 2,
+          width: 170,
+          height: 170,
+          borderRadius: 85,
           borderWidth: 3,
-          borderColor: '#eab308',
+          borderColor: 'rgba(234, 179, 8, 0.5)',
           backgroundColor: '#1c1917',
           alignItems: 'center',
           justifyContent: 'center',
         }}>
           <Animated.View style={{
-            width: 44,
-            height: 44,
-            borderRadius: 22,
-            borderWidth: 3.5,
+            width: 48,
+            height: 48,
+            borderRadius: 24,
+            borderWidth: 4,
             borderColor: 'rgba(234, 179, 8, 0.2)',
             borderTopColor: '#facc15',
             borderRightColor: '#facc15',
@@ -117,8 +112,8 @@ export function ConnectButton({ status, onConnect, onDisconnect }: ConnectButton
           <Text style={{
             color: '#facc15',
             fontWeight: '800',
-            fontSize: 12,
-            letterSpacing: 1.5,
+            fontSize: 11,
+            letterSpacing: 2,
           }}>
             {status === 'connecting' ? 'CONNECTING' : 'DISCONNECTING'}
           </Text>
@@ -129,12 +124,12 @@ export function ConnectButton({ status, onConnect, onDisconnect }: ConnectButton
 
   if (isConnected) {
     return (
-      <View style={{ width: GLOW_SIZE, height: GLOW_SIZE, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ width: 210, height: 210, alignItems: 'center', justifyContent: 'center' }}>
         <Animated.View style={{
           position: 'absolute',
-          width: GLOW_SIZE,
-          height: GLOW_SIZE,
-          borderRadius: GLOW_SIZE / 2,
+          width: 200,
+          height: 200,
+          borderRadius: 100,
           backgroundColor: '#22c55e',
           opacity: glowAnim,
           transform: [{ scale: pulseAnim }],
@@ -142,12 +137,12 @@ export function ConnectButton({ status, onConnect, onDisconnect }: ConnectButton
         <Pressable
           onPress={handlePress}
           style={({ pressed }) => ({
-            width: BUTTON_SIZE,
-            height: BUTTON_SIZE,
-            borderRadius: BUTTON_SIZE / 2,
+            width: 170,
+            height: 170,
+            borderRadius: 85,
             borderWidth: 3.5,
             borderColor: '#22c55e',
-            backgroundColor: '#064e3b',
+            backgroundColor: '#052e16',
             alignItems: 'center',
             justifyContent: 'center',
             transform: [{ scale: pressed ? 0.95 : 1 }],
@@ -157,8 +152,9 @@ export function ConnectButton({ status, onConnect, onDisconnect }: ConnectButton
           <Text style={{
             color: '#4ade80',
             fontWeight: '800',
-            fontSize: 13,
+            fontSize: 12,
             letterSpacing: 2,
+            marginTop: 6,
           }}>
             DISCONNECT
           </Text>
@@ -168,24 +164,25 @@ export function ConnectButton({ status, onConnect, onDisconnect }: ConnectButton
   }
 
   return (
-    <View style={{ width: GLOW_SIZE, height: GLOW_SIZE, alignItems: 'center', justifyContent: 'center' }}>
+    <View style={{ width: 210, height: 210, alignItems: 'center', justifyContent: 'center' }}>
       <Animated.View style={{
         position: 'absolute',
-        width: GLOW_SIZE,
-        height: GLOW_SIZE,
-        borderRadius: GLOW_SIZE / 2,
-        backgroundColor: '#3b82f6',
-        opacity: 0.15,
+        width: 190,
+        height: 190,
+        borderRadius: 95,
+        borderWidth: 2,
+        borderColor: 'rgba(59, 130, 246, 0.25)',
+        backgroundColor: 'rgba(37, 99, 235, 0.08)',
       }} />
       <Pressable
         onPress={handlePress}
         style={({ pressed }) => ({
-          width: BUTTON_SIZE,
-          height: BUTTON_SIZE,
-          borderRadius: BUTTON_SIZE / 2,
+          width: 165,
+          height: 165,
+          borderRadius: 82.5,
           borderWidth: 3.5,
           borderColor: '#3b82f6',
-          backgroundColor: '#0c1e45',
+          backgroundColor: '#0f172a',
           alignItems: 'center',
           justifyContent: 'center',
           transform: [{ scale: pressed ? 0.95 : 1 }],
@@ -195,8 +192,9 @@ export function ConnectButton({ status, onConnect, onDisconnect }: ConnectButton
         <Text style={{
           color: '#60a5fa',
           fontWeight: '800',
-          fontSize: 14,
-          letterSpacing: 2,
+          fontSize: 13,
+          letterSpacing: 2.5,
+          marginTop: 6,
         }}>
           CONNECT
         </Text>

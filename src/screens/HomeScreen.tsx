@@ -120,15 +120,15 @@ export function HomeScreen({
           </View>
         </View>
 
-        <View style={{ alignItems: 'center', paddingTop: 16, paddingBottom: 8 }}>
+        <View style={{ alignItems: 'center', paddingTop: 8, paddingBottom: 4 }}>
           <Image
             source={logoAsset}
-            style={{ width: 96, height: 96 }}
+            style={{ width: 80, height: 80 }}
             resizeMode="contain"
           />
         </View>
 
-        <View style={{ alignItems: 'center', paddingVertical: 20 }}>
+        <View style={{ alignItems: 'center', paddingVertical: 8 }}>
           <ConnectButton
             status={connection.status}
             onConnect={onConnect}
@@ -139,7 +139,7 @@ export function HomeScreen({
             fontSize: 13,
             fontWeight: '700',
             letterSpacing: 1.5,
-            marginTop: 16,
+            marginTop: 8,
           }}>
             {statusLabel}
           </Text>
